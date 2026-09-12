@@ -228,6 +228,16 @@ body {
   50% { opacity: 0.45; }
 }
 
+.live-dot {
+  display: inline-block;
+  height: 0.55rem;
+  width: 0.55rem;
+  border-radius: 999px;
+  background: #2a4538;
+  box-shadow: 0 0 0 4px rgba(42, 69, 56, 0.16);
+  animation: pulse-soft 2.2s ease-in-out infinite;
+}
+
 .chip {
   display: inline-flex;
   align-items: center;
@@ -336,7 +346,8 @@ body {
 
 @media (prefers-reduced-motion: reduce) {
   .rise,
-  .rise-seq > * {
+  .rise-seq > *,
+  .live-dot {
     animation: none;
   }
 

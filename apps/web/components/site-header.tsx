@@ -16,7 +16,7 @@ export function SiteHeader() {
             </span>
           </span>
         </Link>
-        <p className="hidden text-sm text-ink-soft sm:block">24 ժամ · Neon PostgreSQL</p>
+        <p className="hidden text-sm text-ink-soft sm:block">Կենդանի դաշտային վահանակ · 24 ժամ</p>
       </div>
     </header>
   );
