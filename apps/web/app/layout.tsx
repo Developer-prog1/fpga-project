@@ -1,30 +1,38 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Noto_Sans_Armenian, Noto_Serif_Armenian } from "next/font/google";
+import { AppFrame } from "@/components/app-frame";
 import "./globals.css";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
+const sans = Noto_Sans_Armenian({
+  subsets: ["armenian"],
+  weight: ["400", "500", "600", "700"],
+  variable: "--font-sans-armenian",
+  display: "swap",
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
+const serif = Noto_Serif_Armenian({
+  subsets: ["armenian"],
+  weight: ["400", "500", "600", "700"],
+  variable: "--font-serif-armenian",
+  display: "swap",
 });
 
 export const metadata: Metadata = {
-  title: "Hamalsaran",
-  description: "University platform — courses, faculties, and enrollments",
+  title: {
+    default: "Համալսարան",
+    template: "%s · Համալսարան",
+  },
+  description: "Համալսարանի վարչական համակարգ — ֆակուլտետներ, դասընթացներ և ադմիններ։",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
       lang="hy"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      className={`${sans.variable} ${serif.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col bg-zinc-50 text-zinc-900">
-        {children}
+      <body className="min-h-full font-sans">
+        <AppFrame>{children}</AppFrame>
       </body>
     </html>
   );
