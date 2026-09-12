@@ -18,10 +18,10 @@ const serif = Noto_Serif_Armenian({
 
 export const metadata: Metadata = {
   title: {
-    default: "Համալսարան",
+    default: "Համալսարան · դաշտ",
     template: "%s · Համալսարան",
   },
-  description: "Համալսարան — ֆակուլտետներ, դասընթացներ և վարչական վահանակ։",
+  description: "Դաշտային կայան — քամի, հողի խոնավություն, ջերմաստիճան և այլ սենսորային տվյալներ։",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

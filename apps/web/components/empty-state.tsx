@@ -8,8 +8,8 @@ export function EmptyState() {
       </div>
       <h2 className="mt-6 font-serif text-3xl tracking-tight">Կապը բացակայում է</h2>
       <p className="mt-3 text-ink-soft">
-        Ակնարկի տվյալները հասանելի չեն։ Գործարկեք համակարգը և լցրեք ցուցադրական
-        տվյալները։
+        Ակնարկի տվյալները հասանելի չեն։ Գործարկեք API-ն և լցրեք սենսորային
+        չափումները։
       </p>
       <div className="mt-6 flex flex-wrap justify-center gap-2">
         <code className="rounded-full bg-ink/5 px-3 py-1 text-sm">pnpm run dev</code>

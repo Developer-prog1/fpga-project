@@ -1,46 +1,37 @@
-export type Health = {
-  status: string;
-  database?: string;
-};
-
-export type Faculty = {
+export type Station = {
   id: string;
   name: string;
-  slug: string;
-  description: string | null;
-  _count?: { courses: number };
-  courses?: Array<{
-    id: string;
-    code: string;
-    title: string;
-    credits: number;
-    description?: string | null;
-  }>;
+  location: string | null;
 };
 
-export type Course = {
+export type Reading = {
   id: string;
-  code: string;
-  title: string;
-  description?: string | null;
-  credits: number;
-  faculty: { id?: string; name: string; slug: string };
+  recordedAt: string;
+  windSpeed: number;
+  windDirDeg: number;
+  soilMoisture: number;
+  soilTemp: number;
+  airTemp: number;
+  airHumidity: number;
+  rainfallMm: number;
+  pressureHpa: number;
+  lightLux: number;
+  uvIndex: number;
+  dewPoint: number;
+  stationId: string;
 };
 
-export type Admin = {
-  id: string;
-  email: string;
-  name: string;
-  role: string;
-  createdAt: string;
-};
+export type Range = { min: number | null; max: number | null; sum?: number | null };
 
 export type Overview = {
-  stats: {
-    admins: number;
-    faculties: number;
-    courses: number;
-  };
-  faculties: Faculty[];
-  courses: Course[];
+  station: Station | null;
+  latest: Reading | null;
+  summary: {
+    airTemp: Range;
+    soilTemp: Range;
+    airHumidity: Range;
+    soilMoisture: Range;
+    windSpeed: Range;
+    rainfallMm: Range;
+  } | null;
 };

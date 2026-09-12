@@ -10,7 +10,7 @@ export default function NotFound() {
       <p className="mt-8 text-[11px] uppercase tracking-[0.32em] text-gold">404</p>
       <h1 className="mt-3 font-serif text-5xl tracking-tight">Էջը չի գտնվել</h1>
       <p className="mt-4 text-ink-soft">
-        Այս հասցեն գոյություն չունի համալսարանի կայքում։
+        Այս հասցեն գոյություն չունի դաշտային կայանում։
       </p>
       <Link
         href="/"
