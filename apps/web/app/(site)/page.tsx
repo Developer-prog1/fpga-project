@@ -1,6 +1,6 @@
 import { api } from "@/lib/api";
 import type { Overview, Reading } from "@/lib/types";
-import { GROUPS, METRICS, downsample, formatMetric, seriesRange, windDirLabel } from "@/lib/metrics";
+import { GROUPS, METRICS, downsample, formatMetric, seriesRange, windDegNorm, windDirLabel } from "@/lib/metrics";
 import { EmptyState } from "@/components/empty-state";
 import { MetricCard } from "@/components/metric-card";
 import { ChartLegend, TimeChart } from "@/components/charts";
@@ -86,7 +86,11 @@ export default async function Home() {
         <EmptyState />
       ) : (
         <div className="space-y-12">
-          <HeroNow overview={overview} latest={latest} />
+          <HeroNow
+            overview={overview}
+            latest={latest}
+            airTemps={downsample(series.map((row) => row.airTemp), 36)}
+          />
 
           {GROUPS.map((group) => (
             <section key={group.id}>
@@ -100,7 +104,7 @@ export default async function Home() {
                   const range = seriesRange(values);
                   const hint =
                     metric.key === "windSpeed"
-                      ? `ուղղություն ${windDirLabel(latest.windDirDeg)} · ${latest.windDirDeg}°`
+                      ? `ուղղություն ${windDirLabel(latest.windDirDeg)} · ${windDegNorm(latest.windDirDeg)}°`
                       : metric.key === "rainfallMm"
                         ? `24 ժամում գումար ${formatMetric(overview.summary?.rainfallMm.sum ?? 0, 1)} մմ`
                         : undefined;

@@ -128,8 +128,13 @@ const WIND_FULL = [
   "հյուսիս-արևմուտքից",
 ];
 
+export function windDegNorm(deg: number) {
+  const n = Math.round(((deg % 360) + 360) % 360);
+  return n === 360 ? 0 : n;
+}
+
 export function windDirIndex(deg: number) {
-  return Math.round(((deg % 360) + 360) % 360 / 45) % 8;
+  return Math.round(windDegNorm(deg) / 45) % 8;
 }
 
 export function windDirLabel(deg: number) {

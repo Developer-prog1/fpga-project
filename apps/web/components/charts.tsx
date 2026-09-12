@@ -25,15 +25,17 @@ function scaleY(value: number, min: number, span: number, top: number, innerH: n
 }
 
 function niceBounds(values: number[]) {
-  const min = Math.min(...values);
-  const max = Math.max(...values);
-  if (!Number.isFinite(min) || !Number.isFinite(max)) return { min: 0, max: 1 };
-  if (min === max) {
-    const pad = Math.abs(min) * 0.08 || 1;
-    return { min: min - pad, max: max + pad };
+  const rawMin = Math.min(...values);
+  const rawMax = Math.max(...values);
+  if (!Number.isFinite(rawMin) || !Number.isFinite(rawMax)) return { min: 0, max: 1 };
+  if (rawMin === rawMax) {
+    const pad = Math.abs(rawMin) * 0.08 || 1;
+    const min = rawMin >= 0 ? Math.max(0, rawMin - pad) : rawMin - pad;
+    return { min, max: rawMax + pad };
   }
-  const pad = (max - min) * 0.14;
-  return { min: min - pad, max: max + pad };
+  const pad = (rawMax - rawMin) * 0.14;
+  const min = rawMin >= 0 ? Math.max(0, rawMin - pad) : rawMin - pad;
+  return { min, max: rawMax + pad };
 }
 
 function ticks(min: number, max: number, count = 4) {
@@ -42,13 +44,53 @@ function ticks(min: number, max: number, count = 4) {
 
 function formatAxis(value: number) {
   const abs = Math.abs(value);
-  if (abs >= 10000) return `${Math.round(value / 1000)} հզ.`;
+  if (abs >= 1000) return Math.round(value).toLocaleString("hy-AM");
   if (abs >= 100) return Math.round(value).toString();
-  return value.toFixed(abs < 10 ? 1 : 0);
+  return value.toFixed(abs < 10 ? 1 : 0).replace(".", ",");
 }
 
 function xAt(i: number, n: number, left: number, innerW: number) {
   return left + (i / Math.max(n - 1, 1)) * innerW;
+}
+
+export function Ribbon({
+  values,
+  color = "#7a2433",
+}: {
+  values: number[];
+  color?: string;
+}) {
+  if (values.length < 2) return null;
+  const min = Math.min(...values);
+  const max = Math.max(...values);
+  const span = max - min || 1;
+  const w = 420;
+  const h = 78;
+  const pad = 4;
+  const points = values.map((value, i) => ({
+    x: pad + (i / (values.length - 1)) * (w - pad * 2),
+    y: h - pad - ((value - min) / span) * (h - pad * 2),
+  }));
+  const line = smoothLine(points);
+  const last = points[points.length - 1];
+  const gid = `ribbon-${color.replace("#", "")}`;
+
+  return (
+    <svg viewBox={`0 0 ${w} ${h}`} className="h-20 w-full" aria-hidden>
+      <defs>
+        <linearGradient id={gid} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor={color} stopOpacity="0.32" />
+          <stop offset="100%" stopColor={color} stopOpacity="0" />
+        </linearGradient>
+      </defs>
+      <path
+        d={`${line} L ${last.x.toFixed(1)} ${h - pad} L ${points[0].x.toFixed(1)} ${h - pad} Z`}
+        fill={`url(#${gid})`}
+      />
+      <path d={line} fill="none" stroke={color} strokeWidth="2.2" strokeLinejoin="round" strokeLinecap="round" />
+      <circle cx={last.x} cy={last.y} r="3" fill={color} />
+    </svg>
+  );
 }
 
 export function Sparkline({
@@ -118,7 +160,7 @@ export function TimeChart({
   const w = 720;
   const h = 268;
   const hasRight = series.some((s) => (s.axis ?? "left") === "right");
-  const pad = { l: 46, r: hasRight ? 46 : 18, t: 18, b: 32 };
+  const pad = { l: 58, r: hasRight ? 50 : 18, t: 20, b: 32 };
   const innerW = w - pad.l - pad.r;
   const innerH = h - pad.t - pad.b;
   const n = Math.max(...series.map((s) => s.values.length), 1);
@@ -222,6 +264,7 @@ export function TimeChart({
             return (
               <g key={item.label}>
                 {item.values.map((value, i) => {
+                  if (value <= 0.01) return null;
                   const x = xAt(i, n, pad.l, innerW);
                   const y = scaleY(value, axisOf(item).min, axisOf(item).span, pad.t, innerH);
                   const barH = pad.t + innerH - y;
@@ -232,9 +275,9 @@ export function TimeChart({
                       y={y}
                       width={maxBar}
                       height={Math.max(barH, 0)}
-                      rx="2"
+                      rx="3"
                       fill={item.color}
-                      opacity="0.55"
+                      opacity="0.72"
                     />
                   );
                 })}
@@ -260,6 +303,7 @@ export function TimeChart({
                 strokeWidth="2.4"
                 strokeLinejoin="round"
                 strokeLinecap="round"
+                strokeDasharray={kind === "line" ? "7 6" : undefined}
               />
               {last ? <circle cx={last.x} cy={last.y} r="3.2" fill={item.color} /> : null}
             </g>
@@ -368,8 +412,8 @@ export function WindRose({ deg, speed }: { deg: number; speed: number }) {
 
 export function MoistureGauge({ value }: { value: number }) {
   const cx = 100;
-  const cy = 108;
-  const r = 72;
+  const cy = 96;
+  const r = 68;
   const start = Math.PI * 0.78;
   const sweep = Math.PI * 1.44;
   const t = Math.min(Math.max(value, 0), 100) / 100;
@@ -386,25 +430,34 @@ export function MoistureGauge({ value }: { value: number }) {
   }
 
   const needle = start + sweep * t;
-  const nx = cx + Math.cos(needle) * (r - 14);
-  const ny = cy + Math.sin(needle) * (r - 14);
+  const nx = cx + Math.cos(needle) * (r - 16);
+  const ny = cy + Math.sin(needle) * (r - 16);
+  const dry = { x: cx + Math.cos(start) * (r + 14), y: cy + Math.sin(start) * (r + 14) };
+  const wet = { x: cx + Math.cos(start + sweep) * (r + 14), y: cy + Math.sin(start + sweep) * (r + 14) };
 
   return (
-    <svg viewBox="0 0 200 150" className="mx-auto h-[168px] w-[220px]" role="img" aria-label="Հողի խոնավություն">
+    <svg viewBox="0 0 200 148" className="mx-auto h-[158px] w-[220px]" role="img" aria-label="Հողի խոնավություն">
       <path d={arc(0, 1)} fill="none" stroke="rgba(26,18,14,0.08)" strokeWidth="12" strokeLinecap="round" />
       <path d={arc(0, t)} fill="none" stroke="#2a4538" strokeWidth="12" strokeLinecap="round" />
       <line x1={cx} y1={cy} x2={nx} y2={ny} stroke="#1a120e" strokeWidth="2.4" strokeLinecap="round" />
       <circle cx={cx} cy={cy} r="6" fill="#1a120e" />
-      <text x={cx} y={cy + 28} textAnchor="middle" fill="#1a120e" fontSize="28" fontFamily="var(--font-serif-armenian), serif">
+      <text
+        x={cx}
+        y={cy - 8}
+        textAnchor="middle"
+        fill="#1a120e"
+        fontSize="26"
+        fontFamily="Georgia, serif"
+      >
         {formatMetric(value, 1)}
       </text>
-      <text x={cx} y={cy + 46} textAnchor="middle" fill="#5c5148" fontSize="11">
-        % խոնավություն
+      <text x={cx} y={cy + 12} textAnchor="middle" fill="#5c5148" fontSize="11">
+        %
       </text>
-      <text x="28" y="142" fill="#7a6e64" fontSize="10">
+      <text x={dry.x} y={dry.y} textAnchor="middle" fill="#7a6e64" fontSize="10">
         չոր
       </text>
-      <text x="172" y="142" textAnchor="end" fill="#7a6e64" fontSize="10">
+      <text x={wet.x} y={wet.y} textAnchor="middle" fill="#7a6e64" fontSize="10">
         խոնավ
       </text>
     </svg>
