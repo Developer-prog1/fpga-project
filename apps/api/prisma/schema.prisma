@@ -1,0 +1,53 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+enum Role {
+  ADMIN
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String
+  role      Role     @default(ADMIN)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("users")
+}
+
+model Faculty {
+  id          String   @id @default(cuid())
+  name        String
+  slug        String   @unique
+  description String?
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  courses Course[]
+
+  @@map("faculties")
+}
+
+model Course {
+  id          String   @id @default(cuid())
+  code        String   @unique
+  title       String
+  description String?
+  credits     Int      @default(3)
+  facultyId   String   @map("faculty_id")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  faculty Faculty @relation(fields: [facultyId], references: [id], onDelete: Cascade)
+
+  @@index([facultyId])
+  @@map("courses")
+}

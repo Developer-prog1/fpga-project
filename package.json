@@ -1,0 +1,17 @@
+{
+  "name": "hamalsaran",
+  "private": true,
+  "packageManager": "pnpm@11.13.0",
+  "scripts": {
+    "dev": "concurrently -n api,web -c blue,green \"pnpm --filter api dev\" \"pnpm --filter web dev\"",
+    "build": "pnpm --filter api build && pnpm --filter web build",
+    "lint": "pnpm --filter api lint && pnpm --filter web lint",
+    "db:generate": "pnpm --filter api prisma:generate",
+    "db:migrate": "pnpm --filter api prisma:migrate",
+    "db:push": "pnpm --filter api prisma:push",
+    "db:seed": "pnpm --filter api prisma:seed"
+  },
+  "devDependencies": {
+    "concurrently": "^9.2.1"
+  }
+}
