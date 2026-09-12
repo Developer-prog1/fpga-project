@@ -3,7 +3,8 @@ import Link from "next/link";
 import { api } from "@/lib/api";
 import type { Faculty } from "@/lib/types";
 import { facultyTheme } from "@/lib/faculty-meta";
-import { EmptyState, PageIntro } from "@/components/empty-state";
+import { EmptyState } from "@/components/empty-state";
+import { PageIntro } from "@/components/page-intro";
 import { IconArrow } from "@/components/mark";
 
 export const metadata: Metadata = {
@@ -18,20 +19,24 @@ export default async function FacultiesPage() {
       <PageIntro
         eyebrow="Ակադեմիա"
         title="Ֆակուլտետներ"
-        description="Համալսարանի ակադեմիական կառույցը՝ ինֆորմատիկա, տնտեսագիտություն և իրավագիտություն։"
+        description="Համալսարանի ակադեմիական կառույցը՝ այն ֆակուլտետները, որ ադմինը ավելացրել է վահանակում։"
       />
 
       {!faculties ? (
         <EmptyState />
+      ) : faculties.length === 0 ? (
+        <p className="panel rounded-[24px] px-6 py-8 text-ink-soft">
+          Ֆակուլտետներ դեռ չկան։
+        </p>
       ) : (
-        <div className="rise-seq grid gap-5 lg:grid-cols-3">
+        <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
           {faculties.map((faculty) => {
             const theme = facultyTheme(faculty.slug);
             return (
               <Link
                 key={faculty.id}
                 href={`/faculties/${faculty.slug}`}
-                className="panel group flex flex-col rounded-[32px] p-7 transition duration-300 hover:-translate-y-1"
+                className="panel panel-lift group flex flex-col rounded-[32px] p-7"
               >
                 <div className="flex items-center justify-between">
                   <span

@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import { Noto_Sans_Armenian, Noto_Serif_Armenian } from "next/font/google";
-import { AppFrame } from "@/components/app-frame";
 import "./globals.css";
 
 const sans = Noto_Sans_Armenian({
@@ -22,18 +21,17 @@ export const metadata: Metadata = {
     default: "Համալսարան",
     template: "%s · Համալսարան",
   },
-  description: "Համալսարանի վարչական համակարգ — ֆակուլտետներ, դասընթացներ և ադմիններ։",
+  description: "Համալսարան — ֆակուլտետներ, դասընթացներ և վարչական վահանակ։",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
       lang="hy"
+      data-scroll-behavior="smooth"
       className={`${sans.variable} ${serif.variable} h-full antialiased`}
     >
-      <body className="min-h-full font-sans">
-        <AppFrame>{children}</AppFrame>
-      </body>
+      <body className="min-h-full font-sans">{children}</body>
     </html>
   );
 }

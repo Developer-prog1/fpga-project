@@ -35,7 +35,9 @@ export default async function FacultyDetailPage({ params }: Props) {
 
       <section
         className="panel relative mt-6 overflow-hidden rounded-[32px] p-8 sm:p-10"
-        style={{ background: `linear-gradient(165deg, ${theme.wash}, rgba(255,250,242,0.92))` }}
+        style={{
+          background: `linear-gradient(165deg, ${theme.wash}, rgba(255,250,242,0.92))`,
+        }}
       >
         <p className="text-[11px] uppercase tracking-[0.3em]" style={{ color: theme.accent }}>
           {theme.latin} · {theme.index}
@@ -53,25 +55,29 @@ export default async function FacultyDetailPage({ params }: Props) {
 
       <section className="mt-10">
         <h2 className="font-serif text-3xl tracking-tight">Դասընթացներ</h2>
-        <div className="rise-seq mt-6 grid gap-4 md:grid-cols-2">
-          {courses.map((course) => (
-            <article key={course.id} className="panel rounded-[24px] p-6">
-              <div className="flex items-center justify-between gap-3">
-                <span
-                  className="rounded-full px-2.5 py-1 font-mono text-xs"
-                  style={{ color: theme.accent, background: theme.wash }}
-                >
-                  {course.code}
-                </span>
-                <span className="text-sm text-ink-soft">{course.credits} կրեդիտ</span>
-              </div>
-              <h3 className="mt-4 font-serif text-2xl leading-snug">{course.title}</h3>
-              {course.description ? (
-                <p className="mt-2 text-ink-soft">{course.description}</p>
-              ) : null}
-            </article>
-          ))}
-        </div>
+        {courses.length === 0 ? (
+          <p className="mt-6 text-ink-soft">Այս ֆակուլտետում դեռ դասընթաց չկա։</p>
+        ) : (
+          <div className="mt-6 grid gap-4 md:grid-cols-2">
+            {courses.map((course) => (
+              <article key={course.id} className="panel rounded-[24px] p-6">
+                <div className="flex items-center justify-between gap-3">
+                  <span
+                    className="rounded-full px-2.5 py-1 font-mono text-xs"
+                    style={{ color: theme.accent, background: theme.wash }}
+                  >
+                    {course.code}
+                  </span>
+                  <span className="text-sm text-ink-soft">{course.credits} կրեդիտ</span>
+                </div>
+                <h3 className="mt-4 font-serif text-2xl leading-snug">{course.title}</h3>
+                {course.description ? (
+                  <p className="mt-2 text-ink-soft">{course.description}</p>
+                ) : null}
+              </article>
+            ))}
+          </div>
+        )}
       </section>
     </div>
   );

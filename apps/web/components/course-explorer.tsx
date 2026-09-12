@@ -25,11 +25,12 @@ export function CourseExplorer({
   return (
     <div>
       <div className="mb-6 flex flex-wrap gap-2">
-        <button
-          type="button"
-          onClick={() => setFilter("all")}
-          className={`chip ${filter === "all" ? "chip-active" : ""}`}
-        >
+          <button
+            type="button"
+            onClick={() => setFilter("all")}
+            aria-pressed={filter === "all"}
+            className={`chip ${filter === "all" ? "chip-active" : ""}`}
+          >
           Բոլորը
         </button>
         {faculties.map((faculty) => (
@@ -38,6 +39,7 @@ export function CourseExplorer({
             type="button"
             onClick={() => setFilter(faculty.slug)}
             className={`chip ${filter === faculty.slug ? "chip-active" : ""}`}
+            aria-pressed={filter === faculty.slug}
           >
             {faculty.name}
           </button>
@@ -45,7 +47,7 @@ export function CourseExplorer({
       </div>
 
       <div className="panel overflow-hidden rounded-[28px]">
-        <div className="hidden grid-cols-[7rem_1fr_1fr_5rem] gap-4 border-b border-ink/8 px-6 py-3 text-[11px] uppercase tracking-[0.2em] text-ink-soft sm:grid">
+        <div className="hidden grid-cols-[7rem_1fr_1fr_5rem] gap-4 border-b border-ink/8 px-6 py-3 text-[11px] tracking-[0.16em] text-ink-soft sm:grid">
           <span>Կոդ</span>
           <span>Դասընթաց</span>
           <span>Ֆակուլտետ</span>

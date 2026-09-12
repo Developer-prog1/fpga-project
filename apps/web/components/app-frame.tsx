@@ -9,7 +9,7 @@ export async function AppFrame({ children }: { children: React.ReactNode }) {
   return (
     <div className="shell">
       <Sidebar connected={connected} database={health?.database} />
-      <div className="canvas">{children}</div>
+      <div className="canvas min-w-0">{children}</div>
     </div>
   );
 }

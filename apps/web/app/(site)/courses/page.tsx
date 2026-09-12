@@ -2,7 +2,8 @@ import type { Metadata } from "next";
 import { api } from "@/lib/api";
 import type { Course, Faculty } from "@/lib/types";
 import { CourseExplorer } from "@/components/course-explorer";
-import { EmptyState, PageIntro } from "@/components/empty-state";
+import { EmptyState } from "@/components/empty-state";
+import { PageIntro } from "@/components/page-intro";
 
 export const metadata: Metadata = {
   title: "Դասընթացներ",
@@ -19,7 +20,7 @@ export default async function CoursesPage() {
       <PageIntro
         eyebrow="Կատալոգ"
         title="Դասընթացներ"
-        description="Ամբողջական ծրագիրը ըստ ֆակուլտետի՝ կոդերով, կրեդիտներով և նկարագրությամբ։"
+        description="Ամբողջական ծրագիրը ըստ ֆակուլտետի՝ այն դասընթացները, որ ադմինը ավելացրել է։"
       />
 
       {!courses || !faculties ? (

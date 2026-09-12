@@ -30,16 +30,22 @@ const themes: Record<string, FacultyTheme> = {
   },
 };
 
-const fallback: FacultyTheme = {
-  accent: "#7a2433",
-  wash: "rgba(122, 36, 51, 0.08)",
-  latin: "Faculty",
-  index: "00",
-  mark: "✦",
-};
+const palette: Omit<FacultyTheme, "latin" | "index">[] = [
+  { accent: "#2e4a6e", wash: "rgba(46, 74, 110, 0.1)", mark: "✦" },
+  { accent: "#2a4a3a", wash: "rgba(42, 74, 58, 0.1)", mark: "◈" },
+  { accent: "#7a2433", wash: "rgba(122, 36, 51, 0.1)", mark: "§" },
+  { accent: "#6b4c2a", wash: "rgba(107, 76, 42, 0.1)", mark: "◇" },
+];
 
 export function facultyTheme(slug: string): FacultyTheme {
-  return themes[slug] ?? fallback;
+  if (themes[slug]) return themes[slug];
+  const hash = [...slug].reduce((sum, char) => sum + char.charCodeAt(0), 0);
+  const swatch = palette[hash % palette.length];
+  return {
+    ...swatch,
+    latin: slug,
+    index: "—",
+  };
 }
 
 export function initials(name: string) {

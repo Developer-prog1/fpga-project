@@ -18,7 +18,6 @@ export class OverviewService {
           },
         }),
         this.prisma.course.findMany({
-          take: 10,
           orderBy: { code: 'asc' },
           include: {
             faculty: { select: { name: true, slug: true } },

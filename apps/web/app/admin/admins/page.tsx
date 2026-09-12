@@ -2,7 +2,8 @@ import type { Metadata } from "next";
 import { api } from "@/lib/api";
 import type { Admin } from "@/lib/types";
 import { initials } from "@/lib/faculty-meta";
-import { EmptyState, PageIntro } from "@/components/empty-state";
+import { EmptyState } from "@/components/empty-state";
+import { PageIntro } from "@/components/page-intro";
 
 export const metadata: Metadata = {
   title: "Ադմիններ",
@@ -22,7 +23,7 @@ export default async function AdminsPage() {
       {!admins ? (
         <EmptyState />
       ) : (
-        <div className="rise-seq grid gap-4 md:grid-cols-2">
+        <div className="grid gap-4 md:grid-cols-2">
           {admins.map((admin) => (
             <article key={admin.id} className="panel rounded-[28px] p-6">
               <div className="flex items-start gap-4">
