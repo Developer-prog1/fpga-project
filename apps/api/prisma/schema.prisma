@@ -23,31 +23,36 @@ model User {
   @@map("users")
 }
 
-model Faculty {
-  id          String   @id @default(cuid())
-  name        String
-  slug        String   @unique
-  description String?
-  createdAt   DateTime @default(now()) @map("created_at")
-  updatedAt   DateTime @updatedAt @map("updated_at")
+model Station {
+  id        String    @id @default(cuid())
+  name      String
+  location  String?
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
 
-  courses Course[]
+  readings Reading[]
 
-  @@map("faculties")
+  @@map("stations")
 }
 
-model Course {
-  id          String   @id @default(cuid())
-  code        String   @unique
-  title       String
-  description String?
-  credits     Int      @default(3)
-  facultyId   String   @map("faculty_id")
-  createdAt   DateTime @default(now()) @map("created_at")
-  updatedAt   DateTime @updatedAt @map("updated_at")
+model Reading {
+  id           String   @id @default(cuid())
+  recordedAt   DateTime @map("recorded_at")
+  windSpeed    Float    @map("wind_speed")
+  windDirDeg   Int      @map("wind_dir_deg")
+  soilMoisture Float    @map("soil_moisture")
+  soilTemp     Float    @map("soil_temp")
+  airTemp      Float    @map("air_temp")
+  airHumidity  Float    @map("air_humidity")
+  rainfallMm   Float    @map("rainfall_mm")
+  pressureHpa  Float    @map("pressure_hpa")
+  lightLux     Float    @map("light_lux")
+  uvIndex      Float    @map("uv_index")
+  dewPoint     Float    @map("dew_point")
+  stationId    String   @map("station_id")
 
-  faculty Faculty @relation(fields: [facultyId], references: [id], onDelete: Cascade)
+  station Station @relation(fields: [stationId], references: [id], onDelete: Cascade)
 
-  @@index([facultyId])
-  @@map("courses")
+  @@index([stationId, recordedAt])
+  @@map("readings")
 }

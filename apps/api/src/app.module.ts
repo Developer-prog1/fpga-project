@@ -4,9 +4,8 @@ import { resolve } from 'node:path';
 import { PrismaModule } from './prisma/prisma.module.js';
 import { HealthModule } from './health/health.module.js';
 import { UsersModule } from './users/users.module.js';
-import { FacultiesModule } from './faculties/faculties.module.js';
-import { CoursesModule } from './courses/courses.module.js';
 import { OverviewModule } from './overview/overview.module.js';
+import { ReadingsModule } from './readings/readings.module.js';
 
 @Module({
   imports: [
@@ -21,8 +20,7 @@ import { OverviewModule } from './overview/overview.module.js';
     HealthModule,
     OverviewModule,
     UsersModule,
-    FacultiesModule,
-    CoursesModule,
+    ReadingsModule,
   ],
 })
 export class AppModule {}
