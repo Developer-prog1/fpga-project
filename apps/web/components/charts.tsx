@@ -48,8 +48,9 @@ export function LineChart({
   const innerW = w - pad.l - pad.r;
   const innerH = h - pad.t - pad.b;
   const all = series.flatMap((s) => s.values);
-  const min = Math.min(...all, 0);
-  const max = Math.max(...all, 1);
+  if (all.length === 0) return null;
+  const min = Math.min(...all);
+  const max = Math.max(...all);
   const span = max - min || 1;
   const n = Math.max(...series.map((s) => s.values.length), 1);
 

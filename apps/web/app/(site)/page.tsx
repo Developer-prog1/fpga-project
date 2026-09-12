@@ -5,6 +5,12 @@ import { EmptyState } from "@/components/empty-state";
 import { MetricCard } from "@/components/metric-card";
 import { LineChart } from "@/components/charts";
 
+function pickReadings(rows: Reading[], size = 48) {
+  if (rows.length <= size) return rows;
+  const step = (rows.length - 1) / (size - 1);
+  return Array.from({ length: size }, (_, i) => rows[Math.round(i * step)]);
+}
+
 function hourLabel(iso: string) {
   return new Intl.DateTimeFormat("hy-AM", {
     hour: "2-digit",
@@ -20,6 +26,8 @@ export default async function Home() {
 
   const latest = overview?.latest;
   const series = readings ?? [];
+  const chart = pickReadings(series);
+  const labels = chart.map((row) => hourLabel(row.recordedAt));
 
   return (
     <div className="mx-auto w-full max-w-6xl px-5 py-10 sm:px-8 lg:px-10 lg:py-12">
@@ -82,15 +90,10 @@ export default async function Home() {
               <p className="mt-1 text-sm text-ink-soft">Ջերմաստիճան և խոնավություն · վերջին 24 ժամ</p>
               <div className="mt-4">
                 <LineChart
-                  labels={series.map((row) => hourLabel(row.recordedAt))}
+                  labels={labels}
                   series={[
-                    { label: "Օդ °C", color: "#7a2433", values: downsample(series.map((r) => r.airTemp), 48) },
-                    { label: "Հող °C", color: "#6b4c2a", values: downsample(series.map((r) => r.soilTemp), 48) },
-                    {
-                      label: "Հողի խոնավություն %",
-                      color: "#2a4538",
-                      values: downsample(series.map((r) => r.soilMoisture), 48),
-                    },
+                    { label: "Օդ °C", color: "#7a2433", values: chart.map((r) => r.airTemp) },
+                    { label: "Հող °C", color: "#6b4c2a", values: chart.map((r) => r.soilTemp) },
                   ]}
                 />
               </div>
@@ -99,10 +102,10 @@ export default async function Home() {
               <h2 className="font-serif text-2xl">Քամի և տեղումներ</h2>
               <div className="mt-4">
                 <LineChart
-                  labels={series.map((row) => hourLabel(row.recordedAt))}
+                  labels={labels}
                   series={[
-                    { label: "Քամի m/s", color: "#2e4a6e", values: downsample(series.map((r) => r.windSpeed), 48) },
-                    { label: "Տեղումներ մմ", color: "#c4a35a", values: downsample(series.map((r) => r.rainfallMm), 48) },
+                    { label: "Քամի m/s", color: "#2e4a6e", values: chart.map((r) => r.windSpeed) },
+                    { label: "Տեղումներ մմ", color: "#c4a35a", values: chart.map((r) => r.rainfallMm) },
                   ]}
                 />
               </div>
@@ -111,14 +114,14 @@ export default async function Home() {
               <h2 className="font-serif text-2xl">Լույս և UV</h2>
               <div className="mt-4">
                 <LineChart
-                  labels={series.map((row) => hourLabel(row.recordedAt))}
+                  labels={labels}
                   series={[
                     {
                       label: "Լուսավորություն ÷1000",
                       color: "#c4a35a",
-                      values: downsample(series.map((r) => r.lightLux / 1000), 48),
+                      values: chart.map((r) => r.lightLux / 1000),
                     },
-                    { label: "UV", color: "#7a2433", values: downsample(series.map((r) => r.uvIndex), 48) },
+                    { label: "UV", color: "#7a2433", values: chart.map((r) => r.uvIndex) },
                   ]}
                 />
               </div>
