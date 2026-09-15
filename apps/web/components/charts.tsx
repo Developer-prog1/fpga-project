@@ -24,29 +24,56 @@ function scaleY(value: number, min: number, span: number, top: number, innerH: n
   return top + innerH - ((value - min) / span) * innerH;
 }
 
+function niceStep(span: number) {
+  const rough = Math.abs(span) / 3 || 1;
+  const exp = Math.floor(Math.log10(rough));
+  const pow = 10 ** exp;
+  const n = rough / pow;
+  const nice = n > 7 ? 10 : n > 3 ? 5 : n > 1.4 ? 2 : 1;
+  return nice * pow;
+}
+
 function niceBounds(values: number[]) {
   const rawMin = Math.min(...values);
   const rawMax = Math.max(...values);
   if (!Number.isFinite(rawMin) || !Number.isFinite(rawMax)) return { min: 0, max: 1 };
-  if (rawMin === rawMax) {
-    const pad = Math.abs(rawMin) * 0.08 || 1;
-    const min = rawMin >= 0 ? Math.max(0, rawMin - pad) : rawMin - pad;
-    return { min, max: rawMax + pad };
+
+  let min = rawMin;
+  let max = rawMax;
+  if (min === max) {
+    const pad = Math.abs(min) * 0.08 || 1;
+    min -= pad;
+    max += pad;
+  } else {
+    const pad = (max - min) * 0.1;
+    min -= pad;
+    max += pad;
   }
-  const pad = (rawMax - rawMin) * 0.14;
-  const min = rawMin >= 0 ? Math.max(0, rawMin - pad) : rawMin - pad;
-  return { min, max: rawMax + pad };
+  if (rawMin >= 0) min = Math.max(0, min);
+  const step = niceStep(max - min);
+  min = Math.floor(min / step) * step;
+  max = Math.ceil(max / step) * step;
+  if (rawMin >= 0) min = Math.max(0, min);
+  if (min === max) max = min + step;
+  return { min, max };
 }
 
-function ticks(min: number, max: number, count = 4) {
-  return Array.from({ length: count }, (_, i) => min + ((max - min) * i) / (count - 1));
+function ticks(min: number, max: number) {
+  const step = niceStep(max - min || 1);
+  const out: number[] = [];
+  const start = Math.round(min / step) * step;
+  for (let value = start; value <= max + step * 0.001; value += step) {
+    out.push(Number(value.toPrecision(8)));
+    if (out.length > 7) break;
+  }
+  return out.length ? out : [min, max];
 }
 
 function formatAxis(value: number) {
   const abs = Math.abs(value);
   if (abs >= 1000) return Math.round(value).toLocaleString("hy-AM");
   if (abs >= 100) return Math.round(value).toString();
-  return value.toFixed(abs < 10 ? 1 : 0).replace(".", ",");
+  return value.toFixed(abs < 10 && abs !== Math.round(abs) ? 1 : 0).replace(".", ",");
 }
 
 function xAt(i: number, n: number, left: number, innerW: number) {
@@ -412,8 +439,8 @@ export function WindRose({ deg, speed }: { deg: number; speed: number }) {
 
 export function MoistureGauge({ value }: { value: number }) {
   const cx = 100;
-  const cy = 96;
-  const r = 68;
+  const cy = 92;
+  const r = 64;
   const start = Math.PI * 0.78;
   const sweep = Math.PI * 1.44;
   const t = Math.min(Math.max(value, 0), 100) / 100;
@@ -430,34 +457,19 @@ export function MoistureGauge({ value }: { value: number }) {
   }
 
   const needle = start + sweep * t;
-  const nx = cx + Math.cos(needle) * (r - 16);
-  const ny = cy + Math.sin(needle) * (r - 16);
-  const dry = { x: cx + Math.cos(start) * (r + 14), y: cy + Math.sin(start) * (r + 14) };
-  const wet = { x: cx + Math.cos(start + sweep) * (r + 14), y: cy + Math.sin(start + sweep) * (r + 14) };
+  const nx = cx + Math.cos(needle) * (r - 14);
+  const ny = cy + Math.sin(needle) * (r - 14);
 
   return (
-    <svg viewBox="0 0 200 148" className="mx-auto h-[158px] w-[220px]" role="img" aria-label="Հողի խոնավություն">
+    <svg viewBox="0 0 200 128" className="mx-auto h-[132px] w-[210px]" role="img" aria-label="Հողի խոնավություն">
       <path d={arc(0, 1)} fill="none" stroke="rgba(26,18,14,0.08)" strokeWidth="12" strokeLinecap="round" />
       <path d={arc(0, t)} fill="none" stroke="#2a4538" strokeWidth="12" strokeLinecap="round" />
       <line x1={cx} y1={cy} x2={nx} y2={ny} stroke="#1a120e" strokeWidth="2.4" strokeLinecap="round" />
       <circle cx={cx} cy={cy} r="6" fill="#1a120e" />
-      <text
-        x={cx}
-        y={cy - 8}
-        textAnchor="middle"
-        fill="#1a120e"
-        fontSize="26"
-        fontFamily="Georgia, serif"
-      >
-        {formatMetric(value, 1)}
-      </text>
-      <text x={cx} y={cy + 12} textAnchor="middle" fill="#5c5148" fontSize="11">
-        %
-      </text>
-      <text x={dry.x} y={dry.y} textAnchor="middle" fill="#7a6e64" fontSize="10">
+      <text x={cx + Math.cos(start) * (r + 16)} y={cy + Math.sin(start) * (r + 16) + 4} textAnchor="middle" fill="#7a6e64" fontSize="10">
         չոր
       </text>
-      <text x={wet.x} y={wet.y} textAnchor="middle" fill="#7a6e64" fontSize="10">
+      <text x={cx + Math.cos(start + sweep) * (r + 16)} y={cy + Math.sin(start + sweep) * (r + 16) + 4} textAnchor="middle" fill="#7a6e64" fontSize="10">
         խոնավ
       </text>
     </svg>

@@ -4,7 +4,7 @@ import { Crest } from "@/components/mark";
 export function SiteHeader() {
   return (
     <header className="site-header">
-      <div className="mx-auto flex w-full max-w-6xl items-center justify-between gap-4 px-5 py-4 sm:px-8">
+      <div className="mx-auto flex w-full max-w-6xl items-center px-5 py-4 sm:px-8">
         <Link href="/" className="flex items-center gap-3 text-ink">
           <span className="text-gold">
             <Crest className="size-10" />
@@ -16,7 +16,6 @@ export function SiteHeader() {
             </span>
           </span>
         </Link>
-        <p className="hidden text-sm text-ink-soft sm:block">Կենդանի դաշտային վահանակ · 24 ժամ</p>
       </div>
     </header>
   );

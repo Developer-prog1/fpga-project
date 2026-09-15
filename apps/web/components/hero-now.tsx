@@ -69,7 +69,11 @@ export function HeroNow({
         <div className="text-center">
           <p className="text-[11px] uppercase tracking-[0.2em] text-forest">Հող</p>
           <MoistureGauge value={latest.soilMoisture} />
-          <p className="text-sm text-ink-soft">ջերմաստիճան {formatMetric(latest.soilTemp, 1)} °C</p>
+          <p className="stat-number font-serif text-4xl leading-none">
+            {formatMetric(latest.soilMoisture, 1)}
+            <span className="ml-1 font-sans text-sm font-medium tracking-normal text-ink-soft">%</span>
+          </p>
+          <p className="mt-2 text-sm text-ink-soft">ջերմաստիճան {formatMetric(latest.soilTemp, 1)} °C</p>
         </div>
       </div>
     </section>
