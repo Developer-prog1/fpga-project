@@ -87,7 +87,7 @@ export default async function Home() {
           <EmptyState />
         </div>
       ) : (
-        <div className="space-y-12 px-3 sm:px-4">
+        <div className="space-y-12 px-6 sm:px-8 lg:px-12">
           <HeroNow
             overview={overview}
             latest={latest}
@@ -95,12 +95,12 @@ export default async function Home() {
           />
 
           {GROUPS.map((group) => (
-            <section key={group.id}>
+            <section key={group.id} className="px-6 sm:px-8">
               <div className="mb-4">
                 <h2 className="font-serif text-2xl">{group.title}</h2>
                 <p className="mt-1 text-sm text-ink-soft">{group.note}</p>
               </div>
-              <div className={`grid gap-4 ${group.id === "soil" || group.id === "light" ? "md:grid-cols-2" : "sm:grid-cols-2 xl:grid-cols-3"}`}>
+              <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
                 {METRICS.filter((metric) => metric.group === group.id).map((metric) => {
                   const values = series.map((row) => row[metric.key]);
                   const range = seriesRange(values);

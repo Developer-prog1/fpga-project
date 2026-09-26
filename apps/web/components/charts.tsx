@@ -132,9 +132,9 @@ export function Sparkline({
   const min = Math.min(...values);
   const max = Math.max(...values);
   const span = max - min || 1;
-  const w = 132;
-  const h = 42;
-  const pad = 3;
+  const w = 420;
+  const h = 72;
+  const pad = 6;
   const points = values.map((value, i) => ({
     x: pad + (i / (values.length - 1)) * (w - pad * 2),
     y: h - pad - ((value - min) / span) * (h - pad * 2),
@@ -144,7 +144,7 @@ export function Sparkline({
   const gid = `spark-${color.replace("#", "")}`;
 
   return (
-    <svg viewBox={`0 0 ${w} ${h}`} className="h-10 w-32" aria-hidden>
+    <svg viewBox={`0 0 ${w} ${h}`} className="block h-auto w-full" aria-hidden>
       <defs>
         <linearGradient id={gid} x1="0" y1="0" x2="0" y2="1">
           <stop offset="0%" stopColor={color} stopOpacity="0.35" />
@@ -155,7 +155,7 @@ export function Sparkline({
         d={`${line} L ${last.x.toFixed(1)} ${h - pad} L ${points[0].x.toFixed(1)} ${h - pad} Z`}
         fill={`url(#${gid})`}
       />
-      <path d={line} fill="none" stroke={color} strokeWidth="1.8" strokeLinejoin="round" strokeLinecap="round" />
+      <path d={line} fill="none" stroke={color} strokeWidth="2.2" strokeLinejoin="round" strokeLinecap="round" />
       <circle cx={last.x} cy={last.y} r="2.4" fill={color} />
     </svg>
   );

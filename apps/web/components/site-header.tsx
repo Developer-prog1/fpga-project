@@ -4,7 +4,7 @@ import Link from "next/link";
 export function SiteHeader() {
   return (
     <header className="site-header">
-      <div className="flex w-full items-center px-9 py-4 sm:px-12">
+      <div className="flex w-full items-center px-12 py-4 sm:px-16 lg:px-20">
         <Link href="/" className="flex items-center gap-3 text-ink">
           <Image
             src="/npua-seal.png"
