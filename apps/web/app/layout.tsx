@@ -4,14 +4,14 @@ import "./globals.css";
 
 const sans = Noto_Sans_Armenian({
   subsets: ["armenian"],
-  weight: ["400", "500", "600", "700"],
+  weight: ["400", "500"],
   variable: "--font-sans-armenian",
   display: "swap",
 });
 
 const serif = Noto_Serif_Armenian({
   subsets: ["armenian"],
-  weight: ["400", "500", "600", "700"],
+  weight: ["400"],
   variable: "--font-serif-armenian",
   display: "swap",
 });
@@ -26,11 +26,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html
-      lang="hy"
-      data-scroll-behavior="smooth"
-      className={`${sans.variable} ${serif.variable} h-full antialiased`}
-    >
+    <html lang="hy" className={`${sans.variable} ${serif.variable} h-full antialiased`}>
       <body className="min-h-full font-sans">{children}</body>
     </html>
   );
