@@ -81,11 +81,13 @@ export default async function Home() {
   ];
 
   return (
-    <div className="mx-auto w-full max-w-6xl px-5 py-10 sm:px-8 lg:px-10 lg:py-12">
+    <div className="py-8 lg:py-10">
       {!overview?.station || !latest ? (
-        <EmptyState />
+        <div className="mx-auto w-full max-w-6xl px-5 sm:px-8 lg:px-10">
+          <EmptyState />
+        </div>
       ) : (
-        <div className="space-y-12">
+        <div className="space-y-12 px-3 sm:px-4">
           <HeroNow
             overview={overview}
             latest={latest}
