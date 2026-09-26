@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { Sparkline } from "@/components/charts";
 import { MetricIcon } from "@/components/weather-icons";
 import { formatMetric } from "@/lib/metrics";
@@ -46,6 +47,7 @@ type MetricCardProps = {
   min: number;
   max: number;
   color: string;
+  href?: string;
 };
 
 function CardHead({
@@ -88,9 +90,11 @@ export function MetricCard({
   min,
   max,
   color,
+  href,
 }: MetricCardProps) {
-  return (
-    <article className="panel panel-lift flex h-full flex-col rounded-[24px] p-5">
+  const className = "panel panel-lift flex h-full flex-col rounded-[24px] p-5";
+  const body = (
+    <>
       <CardHead metricKey={metricKey} label={label} color={color} watch={watch} />
 
       <p className="stat-number mt-5 font-serif text-5xl leading-none">
@@ -107,6 +111,16 @@ export function MetricCard({
         <Sparkline values={spark} color={color} />
       </div>
       <RangeMark min={min} max={max} value={value} digits={digits} color={color} />
-    </article>
+    </>
   );
+
+  if (href) {
+    return (
+      <Link href={href} className={className}>
+        {body}
+      </Link>
+    );
+  }
+
+  return <article className={className}>{body}</article>;
 }

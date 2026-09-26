@@ -1,5 +1,6 @@
 import { api } from "@/lib/api";
 import type { Overview, Reading } from "@/lib/types";
+import { airPath } from "@/lib/air-detail";
 import { GROUPS, METRICS, downsample, formatMetric, seriesRange, windDegNorm, windDirLabel } from "@/lib/metrics";
 import { EmptyState } from "@/components/empty-state";
 import { MetricCard } from "@/components/metric-card";
@@ -125,6 +126,7 @@ export default async function Home() {
                       min={range.min}
                       max={range.max}
                       color={metric.color}
+                      href={airPath(metric.key) ?? undefined}
                     />
                   );
                 })}
