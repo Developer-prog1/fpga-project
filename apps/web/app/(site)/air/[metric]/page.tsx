@@ -12,6 +12,17 @@ function hourLabel(iso: string) {
   return new Intl.DateTimeFormat("hy-AM", { hour: "2-digit", minute: "2-digit" }).format(new Date(iso));
 }
 
+function extraNote(key: string, latest: Reading, values: number[], sum: number | null | undefined) {
+  if (key === "windSpeed") {
+    return `գալիս է ${windDirFull(latest.windDirDeg)} · ${windDirLabel(latest.windDirDeg)} ${windDegNorm(latest.windDirDeg)}°`;
+  }
+  if (key === "rainfallMm") {
+    const total = sum ?? values.reduce((acc, n) => acc + n, 0);
+    return `24 ժամում գումար ${formatMetric(total, 1)} մմ`;
+  }
+  return undefined;
+}
+
 function mean(values: number[]) {
   if (values.length === 0) return 0;
   return values.reduce((sum, value) => sum + value, 0) / values.length;
@@ -49,13 +60,7 @@ export default async function AirMetricPage({ params }: AirRouteProps) {
 
   const { metric } = page;
   const values = series.map((row) => row[metric.key]);
-  const extra =
-    metric.key === "windSpeed"
-      ? `գալիս է ${windDirFull(latest.windDirDeg)} · ${windDirLabel(latest.windDirDeg)} ${windDegNorm(latest.windDirDeg)}°`
-      : metric.key === "rainfallMm"
-        ? `24 ժամում գումար ${formatMetric(overview?.summary?.rainfallMm.sum ?? values.reduce((sum, n) => sum + n, 0), 1)} մմ`
-        : undefined;
-
+  const extra = extraNote(metric.key, latest, values, overview?.summary?.rainfallMm.sum);
   const when = new Intl.DateTimeFormat("hy-AM", {
     dateStyle: "medium",
     timeStyle: "short",
