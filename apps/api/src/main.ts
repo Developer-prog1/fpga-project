@@ -4,6 +4,7 @@ import { ConfigService } from '@nestjs/config';
 import { config as loadEnv } from 'dotenv';
 import { resolve } from 'node:path';
 import { AppModule } from './app.module.js';
+import { RequestLoggerInterceptor } from './common/request-logger.interceptor.js';
 
 loadEnv({ path: resolve(process.cwd(), '../../.env') });
 loadEnv({ path: resolve(process.cwd(), '.env') });
@@ -17,6 +18,8 @@ async function bootstrap() {
     origin: corsOrigin,
     credentials: true,
   });
+
+  app.useGlobalInterceptors(new RequestLoggerInterceptor());
 
   app.useGlobalPipes(
     new ValidationPipe({
