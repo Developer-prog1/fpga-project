@@ -20,8 +20,6 @@ type MetricDetailProps = {
 };
 
 function DetailIntro({
-  label,
-  about,
   reading,
   value,
   unit,
@@ -29,7 +27,7 @@ function DetailIntro({
   extra,
   watch,
   stats,
-}: Omit<MetricDetailProps, "series" | "labels" | "times" | "unitLabel">) {
+}: Omit<MetricDetailProps, "series" | "labels" | "times" | "unitLabel" | "label" | "about">) {
   return (
       <section className="panel mt-8 rounded-[32px] p-6 sm:p-8">
         <div className="flex flex-wrap items-end justify-between gap-4">
