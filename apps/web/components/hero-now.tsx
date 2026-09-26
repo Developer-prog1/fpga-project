@@ -17,10 +17,10 @@ export function HeroNow({
   }).format(new Date(latest.recordedAt));
 
   return (
-    <section className="panel overflow-hidden rounded-[32px] p-6 sm:p-8">
+    <section className="panel overflow-hidden rounded-[32px] p-6 sm:p-8 lg:p-10">
       <div className="flex flex-col gap-5 md:flex-row md:items-start md:justify-between">
         <div>
-          <p className="text-[11px] uppercase tracking-[0.32em] text-gold">{overview.station?.location}</p>
+          <p className="kicker text-gold">{overview.station?.location}</p>
           <h1 className="mt-3 font-serif text-4xl leading-[1.08] tracking-tight sm:text-5xl">
             {overview.station?.name}
           </h1>
@@ -40,9 +40,9 @@ export function HeroNow({
         </div>
       </div>
 
-      <div className="mt-8 grid gap-6 md:grid-cols-3 md:items-end">
-        <div className="rounded-[24px] bg-gradient-to-br from-garnet/8 via-paper/40 to-transparent px-6 py-6">
-          <p className="text-[11px] uppercase tracking-[0.2em] text-garnet">Հիմա · օդ</p>
+      <div className="mt-8 grid gap-4 md:grid-cols-3 md:items-stretch">
+        <div className="rounded-[24px] border border-gold/25 bg-gradient-to-br from-garnet/10 via-paper to-paper px-6 py-6">
+          <p className="kicker text-garnet">Հիմա · օդ</p>
           <p className="stat-number mt-3 font-serif text-6xl leading-none sm:text-7xl">
             {formatMetric(latest.airTemp, 1)}°
           </p>
@@ -58,16 +58,16 @@ export function HeroNow({
           </div>
         </div>
 
-        <div className="text-center">
-          <p className="text-[11px] uppercase tracking-[0.2em] text-ink-soft">Քամի</p>
+        <div className="rounded-[24px] border border-gold/25 bg-paper/70 px-4 py-5 text-center">
+          <p className="kicker text-gold">Քամի</p>
           <WindRose deg={latest.windDirDeg} speed={latest.windSpeed} />
           <p className="text-sm text-ink-soft">
             գալիս է {windDirFull(latest.windDirDeg)} · {windDirLabel(latest.windDirDeg)} {windDegNorm(latest.windDirDeg)}°
           </p>
         </div>
 
-        <div className="text-center">
-          <p className="text-[11px] uppercase tracking-[0.2em] text-forest">Հող</p>
+        <div className="rounded-[24px] border border-gold/25 bg-gradient-to-br from-forest/10 via-paper to-paper px-4 py-5 text-center">
+          <p className="kicker text-forest">Հող</p>
           <MoistureGauge value={latest.soilMoisture} />
           <p className="stat-number font-serif text-4xl leading-none">
             {formatMetric(latest.soilMoisture, 1)}

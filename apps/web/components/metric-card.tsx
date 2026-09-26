@@ -92,9 +92,10 @@ export function MetricCard({
   color,
   href,
 }: MetricCardProps) {
-  const className = "panel panel-lift flex h-full flex-col rounded-[24px] p-5";
+  const className = "panel panel-lift flex h-full flex-col overflow-hidden rounded-[24px] p-5";
   const body = (
     <>
+      <span className="-mx-5 -mt-5 mb-4 block h-1" style={{ background: color }} />
       <CardHead metricKey={metricKey} label={label} color={color} watch={watch} />
 
       <p className="stat-number mt-5 font-serif text-5xl leading-none">

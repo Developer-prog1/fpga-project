@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { BackLink } from "@/components/back-link";
 import { ChartLegend, TimeChart, type ChartSeries } from "@/components/charts";
 
 export type DetailStat = { label: string; value: string };
@@ -72,7 +72,8 @@ function DetailChart({
 }: Pick<MetricDetailProps, "series" | "labels" | "times" | "unitLabel">) {
   return (
     <section className="panel mt-4 rounded-[32px] p-6 sm:p-8">
-      <h2 className="font-serif text-2xl">24 ժամվա ընթացք</h2>
+      <h2 className="font-serif text-2xl tracking-tight">24 ժամվա ընթացք</h2>
+      <div className="gold-rule mt-3 w-16" />
       <ChartLegend series={series} />
       <div className="mt-4">
         <TimeChart labels={labels} times={times} series={series} unitLeft={unitLabel} />
@@ -84,11 +85,10 @@ function DetailChart({
 export function MetricDetail(props: MetricDetailProps) {
   return (
     <div className="px-6 py-8 sm:px-8 lg:px-12 lg:py-10">
-      <Link href="/" className="text-sm text-ink-soft transition hover:text-ink">
-        ← Գլխավոր
-      </Link>
-      <p className="mt-6 text-[11px] uppercase tracking-[0.28em] text-gold">Մթնոլորտ</p>
+      <BackLink />
+      <p className="kicker mt-8 text-gold">Մթնոլորտ</p>
       <h1 className="mt-3 font-serif text-4xl tracking-tight sm:text-5xl">{props.label}</h1>
+      <div className="gold-rule mt-4 w-24" />
       <p className="mt-4 max-w-3xl text-lg leading-relaxed text-ink-soft">{props.about}</p>
       <DetailIntro {...props} />
       <DetailChart

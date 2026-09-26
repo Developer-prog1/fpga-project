@@ -7,6 +7,7 @@ export function EmptyState() {
         <Crest className="size-14" />
       </div>
       <h2 className="mt-6 font-serif text-3xl tracking-tight">Կապը բացակայում է</h2>
+      <div className="gold-rule mx-auto mt-4 w-16" />
       <p className="mt-3 text-ink-soft">
         Ակնարկի տվյալները հասանելի չեն։ Գործարկեք API-ն և լցրեք սենսորային
         չափումները։

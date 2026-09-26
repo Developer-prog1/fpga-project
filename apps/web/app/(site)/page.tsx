@@ -2,6 +2,7 @@ import { api } from "@/lib/api";
 import type { Overview, Reading } from "@/lib/types";
 import { airPath } from "@/lib/air-detail";
 import { GROUPS, METRICS, downsample, formatMetric, seriesRange, windDegNorm, windDirLabel } from "@/lib/metrics";
+import { ChartFrame, SectionHeading } from "@/components/section-heading";
 import { EmptyState } from "@/components/empty-state";
 import { MetricCard } from "@/components/metric-card";
 import { ChartLegend, TimeChart } from "@/components/charts";
@@ -97,10 +98,7 @@ export default async function Home() {
 
           {GROUPS.map((group) => (
             <section key={group.id} className="px-6 sm:px-8">
-              <div className="mb-4">
-                <h2 className="font-serif text-2xl">{group.title}</h2>
-                <p className="mt-1 text-sm text-ink-soft">{group.note}</p>
-              </div>
+              <SectionHeading title={group.title} note={group.note} />
               <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
                 {METRICS.filter((metric) => metric.group === group.id).map((metric) => {
                   const values = series.map((row) => row[metric.key]);
@@ -135,51 +133,35 @@ export default async function Home() {
           ))}
 
           <section>
-            <div className="mb-4">
-              <h2 className="font-serif text-2xl">24 ժամվա ընթացք</h2>
-              <p className="mt-1 text-sm text-ink-soft">
-                Միավորները բաժանված են առանցքներով. մուգ շերտը գիշերն է։
-              </p>
-            </div>
+            <SectionHeading
+              title="24 ժամվա ընթացք"
+              note="Միավորները բաժանված են առանցքներով. մուգ շերտը գիշերն է։"
+            />
             <div className="grid gap-4 lg:grid-cols-2">
-              <article className="panel rounded-[28px] p-5 sm:p-6">
-                <h3 className="font-serif text-xl">Ջերմաստիճան</h3>
-                <p className="mt-1 text-sm text-ink-soft">օդ և հող · նույն սանդղակ, °C</p>
+              <ChartFrame title="Ջերմաստիճան" note="օդ և հող · նույն սանդղակ, °C">
                 <ChartLegend series={tempSeries} />
                 <div className="mt-3">
                   <TimeChart labels={labels} times={times} series={tempSeries} unitLeft="°C" />
                 </div>
-              </article>
-              <article className="panel rounded-[28px] p-5 sm:p-6">
-                <h3 className="font-serif text-xl">Խոնավություն</h3>
-                <p className="mt-1 text-sm text-ink-soft">օդ և հող · նույն սանդղակ, %</p>
+              </ChartFrame>
+              <ChartFrame title="Խոնավություն" note="օդ և հող · նույն սանդղակ, %">
                 <ChartLegend series={humidSeries} />
                 <div className="mt-3">
                   <TimeChart labels={labels} times={times} series={humidSeries} unitLeft="%" />
                 </div>
-              </article>
-              <article className="panel rounded-[28px] p-5 sm:p-6">
-                <h3 className="font-serif text-xl">Քամի և տեղումներ</h3>
-                <p className="mt-1 text-sm text-ink-soft">ձախում քամի (m/s), աջում անձրևի սյուներ (մմ)</p>
+              </ChartFrame>
+              <ChartFrame title="Քամի և տեղումներ" note="ձախում քամի (m/s), աջում անձրևի սյուներ (մմ)">
                 <ChartLegend series={windRainSeries} />
                 <div className="mt-3">
-                  <TimeChart
-                    labels={labels}
-                    times={times}
-                    series={windRainSeries}
-                    unitLeft="m/s"
-                    unitRight="մմ"
-                  />
+                  <TimeChart labels={labels} times={times} series={windRainSeries} unitLeft="m/s" unitRight="մմ" />
                 </div>
-              </article>
-              <article className="panel rounded-[28px] p-5 sm:p-6">
-                <h3 className="font-serif text-xl">Լույս և UV</h3>
-                <p className="mt-1 text-sm text-ink-soft">ձախում lux, աջում ուլտրամանուշակագույն ինդեքս</p>
+              </ChartFrame>
+              <ChartFrame title="Լույս և UV" note="ձախում lux, աջում ուլտրամանուշակագույն ինդեքս">
                 <ChartLegend series={lightSeries} />
                 <div className="mt-3">
                   <TimeChart labels={labels} times={times} series={lightSeries} unitLeft="lux" unitRight="UV" />
                 </div>
-              </article>
+              </ChartFrame>
             </div>
           </section>
         </div>
