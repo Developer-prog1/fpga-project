@@ -15,12 +15,7 @@ export function SiteHeader() {
             priority
             unoptimized
           />
-          <span>
-            <span className="block font-serif text-xl leading-none">Համալսարան</span>
-            <span className="mt-1 block text-[10px] uppercase tracking-[0.28em] text-gold">
-              Դաշտային կայան
-            </span>
-          </span>
+          <span className="font-serif text-xl leading-none">Համալսարան</span>
         </Link>
       </div>
     </header>
