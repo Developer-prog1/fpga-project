@@ -11,7 +11,7 @@ export function SiteHeader() {
             alt="Հայաստանի ազգային պոլիտեխնիկական համալսարան"
             width={225}
             height={225}
-            className="h-[72px] w-[72px] shrink-0 rounded-full object-contain [clip-path:circle(50%)]"
+            className="h-[60px] w-[60px] shrink-0 rounded-full object-contain [clip-path:circle(50%)]"
             priority
             unoptimized
           />
