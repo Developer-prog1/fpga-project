@@ -15,7 +15,12 @@ export function SiteHeader() {
             priority
             unoptimized
           />
-          <span className="font-serif text-xl leading-none">Համալսարան</span>
+          <span className="flex flex-col gap-1.5">
+            <span className="font-serif text-[1.7rem] leading-none tracking-[0.08em] text-ink">
+              Համալսարան
+            </span>
+            <span className="gold-rule w-14" aria-hidden />
+          </span>
         </Link>
       </div>
     </header>
