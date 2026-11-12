@@ -7,6 +7,21 @@ import { HISTORY_SPANS, isDayKey } from "@/lib/history";
 import type { HistorySpan } from "@/lib/types";
 
 const WEEKDAYS = ["Երկ", "Երք", "Չրք", "Հնգ", "Ուրբ", "Շբթ", "Կիր"];
+const MONTHS = [
+  "հունվար",
+  "փետրվար",
+  "մարտ",
+  "ապրիլ",
+  "մայիս",
+  "հունիս",
+  "հուլիս",
+  "օգոստոս",
+  "սեպտեմբեր",
+  "հոկտեմբեր",
+  "նոյեմբեր",
+  "դեկտեմբեր",
+];
+const MONTHS_SHORT = ["հնվ", "փտր", "մրտ", "ապր", "մյս", "հնս", "հլս", "օգս", "սեպ", "հոկ", "նոյ", "դեկ"];
 
 function parseKey(key: string) {
   const [year, month, day] = key.split("-").map(Number);
@@ -21,7 +36,8 @@ function dateKey(date: Date) {
 }
 
 function shortDay(key: string) {
-  return new Intl.DateTimeFormat("hy-AM", { day: "numeric", month: "short" }).format(parseKey(key));
+  const date = parseKey(key);
+  return `${date.getDate()} ${MONTHS_SHORT[date.getMonth()]}`;
 }
 
 function monthCells(year: number, month: number) {
@@ -99,9 +115,7 @@ export function HistoryFilter({
 
   const lo = start && end ? (start < end ? start : end) : start;
   const hi = start && end ? (start < end ? end : start) : start;
-  const monthLabel = new Intl.DateTimeFormat("hy-AM", { month: "long", year: "numeric" }).format(
-    new Date(cursor.year, cursor.month, 1),
-  );
+  const monthLabel = `${MONTHS[cursor.month]} ${cursor.year}`;
   const archiveStart = archiveFrom ? parseKey(archiveFrom) : null;
   const archiveEnd = archiveTo ? parseKey(archiveTo) : null;
   const canPrev =
@@ -169,7 +183,7 @@ export function HistoryFilter({
               >
                 ‹
               </button>
-              <p className="font-serif text-lg capitalize">{monthLabel}</p>
+              <p className="font-serif text-lg">{monthLabel}</p>
               <button
                 type="button"
                 className="grid size-8 place-items-center rounded-full text-lg text-ink-soft enabled:hover:bg-ink/5 disabled:opacity-30"
@@ -204,7 +218,7 @@ export function HistoryFilter({
                     type="button"
                     disabled={!enabled}
                     aria-pressed={endpoint}
-                    aria-label={new Intl.DateTimeFormat("hy-AM", { dateStyle: "long" }).format(date)}
+                    aria-label={`${date.getDate()} ${MONTHS[date.getMonth()]} ${date.getFullYear()}`}
                     className="relative h-9 disabled:cursor-default disabled:text-ink/25"
                     onClick={() => pick(key)}
                     onDoubleClick={() => apply(key, key)}
