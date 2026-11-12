@@ -1,54 +1,55 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { redirect } from "next/navigation";
 import { EmptyState } from "@/components/empty-state";
 import { HistoryCompare } from "@/components/history-compare";
+import { HistoryFilter } from "@/components/history-filter";
 import { SectionHeading } from "@/components/section-heading";
 import { TrendCharts } from "@/components/trend-charts";
 import { api } from "@/lib/api";
 import {
-  HISTORY_SPANS,
+  historyPreviousLabel,
   historyRangeLabel,
-  historySpanMeta,
+  historySectionNote,
+  historySectionTitle,
   historyTickLabel,
+  inclusiveDays,
+  isDayKey,
   isHistorySpan,
   parseHistorySpan,
 } from "@/lib/history";
-import type { HistoryResponse, HistorySpan } from "@/lib/types";
+import type { HistoryResponse } from "@/lib/types";
 
 export const metadata: Metadata = { title: "Պատմություն" };
 
 type HistoryPageProps = {
-  searchParams: Promise<{ span?: string | string[] }>;
+  searchParams: Promise<{
+    span?: string | string[];
+    from?: string | string[];
+    to?: string | string[];
+  }>;
 };
 
-function HistorySpanNav({ span }: { span: HistorySpan }) {
-  return (
-    <nav aria-label="Ժամանակահատված" className="flex flex-wrap gap-2">
-      {HISTORY_SPANS.map((item) => {
-        const active = item.id === span;
-        return (
-          <Link
-            key={item.id}
-            href={`/history?span=${item.id}`}
-            className={active ? "chip chip-active" : "chip"}
-            aria-current={active ? "page" : undefined}
-          >
-            {item.label}
-          </Link>
-        );
-      })}
-    </nav>
-  );
+function one(value: string | string[] | undefined) {
+  return Array.isArray(value) ? value[0] : value;
 }
 
 export default async function HistoryPage({ searchParams }: HistoryPageProps) {
   const query = await searchParams;
-  const raw = Array.isArray(query.span) ? query.span[0] : query.span;
-  if (raw && !isHistorySpan(raw)) redirect("/history?span=7d");
+  const rawSpan = one(query.span);
+  const rawFrom = one(query.from);
+  const rawTo = one(query.to);
 
-  const span = parseHistorySpan(raw);
-  const history = await api<HistoryResponse>(`/readings/history?span=${span}`);
+  let request = "";
+  if (rawFrom || rawTo) {
+    if (!isDayKey(rawFrom) || !isDayKey(rawTo)) redirect("/history?span=7d");
+    if (rawFrom > rawTo) redirect(`/history?from=${rawTo}&to=${rawFrom}`);
+    request = `/readings/history?from=${rawFrom}&to=${rawTo}`;
+  } else {
+    if (rawSpan && !isHistorySpan(rawSpan)) redirect("/history?span=7d");
+    request = `/readings/history?span=${parseHistorySpan(rawSpan)}`;
+  }
+
+  const history = await api<HistoryResponse>(request);
   if (!history) {
     return (
       <div className="mx-auto w-full max-w-6xl px-5 py-8 sm:px-8 lg:px-10">
@@ -57,7 +58,7 @@ export default async function HistoryPage({ searchParams }: HistoryPageProps) {
     );
   }
 
-  const meta = historySpanMeta(history.span);
+  const days = inclusiveDays(history.dayFrom, history.dayTo);
 
   return (
     <div className="py-8 lg:py-10">
@@ -72,19 +73,31 @@ export default async function HistoryPage({ searchParams }: HistoryPageProps) {
               երկարության համեմատ։
             </p>
           </div>
-          <HistorySpanNav span={history.span} />
+          <HistoryFilter
+            span={history.span}
+            dayFrom={history.dayFrom}
+            dayTo={history.dayTo}
+            archiveFrom={history.archiveFrom}
+            archiveTo={history.archiveTo}
+          />
         </header>
 
-        <HistoryCompare history={history} previousLabel={meta.previous} />
+        <HistoryCompare
+          history={history}
+          previousLabel={historyPreviousLabel(history.span, history.dayFrom, history.dayTo)}
+        />
 
         <section>
-          <SectionHeading title={meta.title} note={meta.note} />
+          <SectionHeading
+            title={historySectionTitle(history.span, history.dayFrom, history.dayTo)}
+            note={historySectionNote(history.grain)}
+          />
           {history.points.length === 0 ? (
             <p className="text-ink-soft">Այս հատվածում չափում չկա։</p>
           ) : (
             <TrendCharts
               rows={history.points}
-              labelFor={(iso) => historyTickLabel(iso, history.span)}
+              labelFor={(iso) => historyTickLabel(iso, history.grain, days)}
               shadeNight={history.shadeNight}
             />
           )}

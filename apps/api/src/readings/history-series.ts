@@ -78,11 +78,27 @@ export type SumCompare = {
   delta: number | null;
 };
 
+export type HistoryGrain = '30m' | '2h' | '1d';
+
+export type HistoryWindow = {
+  from: Date;
+  to: Date;
+  previousFrom: Date;
+  dayFrom: string;
+  dayTo: string;
+  grain: HistoryGrain;
+};
+
 export type HistorySeries = {
-  span: HistorySpan;
+  span: HistorySpan | null;
+  grain: HistoryGrain;
   from: string;
   to: string;
   previousFrom: string;
+  dayFrom: string;
+  dayTo: string;
+  archiveFrom: string | null;
+  archiveTo: string | null;
   shadeNight: boolean;
   points: HistoryPoint[];
   airTemp: LevelCompare;
@@ -102,12 +118,78 @@ export function parseHistorySpan(value: string | undefined): HistorySpan {
   return '7d';
 }
 
-export function historyWindow(span: HistorySpan, now: Date) {
+export function historyWindow(span: HistorySpan, now: Date): HistoryWindow {
   const spanMs = SPAN_MS[span];
+  const from = new Date(now.getTime() - spanMs);
   return {
     to: now,
-    from: new Date(now.getTime() - spanMs),
+    from,
     previousFrom: new Date(now.getTime() - spanMs * 2),
+    dayFrom: dayKey(from),
+    dayTo: dayKey(now),
+    grain: grainFor(spanMs),
+  };
+}
+
+export function dayKey(date: Date) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
+export function parseDayKey(value: string | undefined) {
+  if (!value) return null;
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value);
+  if (!match) return null;
+  const year = Number(match[1]);
+  const month = Number(match[2]);
+  const day = Number(match[3]);
+  const date = new Date(year, month - 1, day);
+  if (date.getFullYear() !== year || date.getMonth() !== month - 1 || date.getDate() !== day) return null;
+  date.setHours(0, 0, 0, 0);
+  return date;
+}
+
+export function grainFor(durationMs: number): HistoryGrain {
+  if (durationMs <= 36 * HOUR) return '30m';
+  if (durationMs <= 10 * 24 * HOUR) return '2h';
+  return '1d';
+}
+
+const MAX_RANGE_DAYS = 90;
+
+export function resolveDayRange(fromRaw?: string, toRaw?: string): HistoryWindow | null {
+  const parsedFrom = parseDayKey(fromRaw);
+  const parsedTo = parseDayKey(toRaw);
+  if (!parsedFrom && !parsedTo) return null;
+
+  let start = parsedFrom ?? parsedTo!;
+  let end = parsedTo ?? parsedFrom!;
+  if (start.getTime() > end.getTime()) {
+    const swap = start;
+    start = end;
+    end = swap;
+  }
+
+  const maxEnd = new Date(start);
+  maxEnd.setDate(maxEnd.getDate() + MAX_RANGE_DAYS - 1);
+  if (end.getTime() > maxEnd.getTime()) end = maxEnd;
+
+  const from = new Date(start);
+  from.setHours(0, 0, 0, 0);
+  const toExclusive = new Date(end);
+  toExclusive.setDate(toExclusive.getDate() + 1);
+  toExclusive.setHours(0, 0, 0, 0);
+  const spanMs = toExclusive.getTime() - from.getTime();
+
+  return {
+    from,
+    to: new Date(toExclusive.getTime() - 1),
+    previousFrom: new Date(from.getTime() - spanMs),
+    dayFrom: dayKey(start),
+    dayTo: dayKey(end),
+    grain: grainFor(spanMs),
   };
 }
 
@@ -120,13 +202,13 @@ function mean(values: number[]) {
   return values.reduce((sum, value) => sum + value, 0) / values.length;
 }
 
-function bucketStart(date: Date, span: HistorySpan) {
+function bucketStart(date: Date, grain: HistoryGrain) {
   const next = new Date(date.getTime());
-  if (span === '30d') {
+  if (grain === '1d') {
     next.setHours(0, 0, 0, 0);
     return next.getTime();
   }
-  if (span === '7d') {
+  if (grain === '2h') {
     next.setMinutes(0, 0, 0);
     next.setHours(next.getHours() - (next.getHours() % 2));
     return next.getTime();
@@ -136,14 +218,14 @@ function bucketStart(date: Date, span: HistorySpan) {
   return next.getTime();
 }
 
-function bucketSeries(rows: HistorySample[], span: HistorySpan): HistoryPoint[] {
+function bucketSeries(rows: HistorySample[], grain: HistoryGrain): HistoryPoint[] {
   const buckets = new Map<
     number,
     { at: number; count: number; rainfallMm: number; sums: Record<AvgKey, number> }
   >();
 
   for (const row of rows) {
-    const at = bucketStart(row.recordedAt, span);
+    const at = bucketStart(row.recordedAt, grain);
     let bucket = buckets.get(at);
     if (!bucket) {
       bucket = {
@@ -224,19 +306,25 @@ function rainfall(current: HistorySample[], previous: HistorySample[]): SumCompa
 }
 
 export function buildHistory(input: {
-  span: HistorySpan;
-  now: Date;
+  span: HistorySpan | null;
+  window: HistoryWindow;
+  archiveFrom: string | null;
+  archiveTo: string | null;
   current: HistorySample[];
   previous: HistorySample[];
 }): HistorySeries {
-  const window = historyWindow(input.span, input.now);
   return {
     span: input.span,
-    from: window.from.toISOString(),
-    to: window.to.toISOString(),
-    previousFrom: window.previousFrom.toISOString(),
-    shadeNight: input.span !== '30d',
-    points: bucketSeries(input.current, input.span),
+    grain: input.window.grain,
+    from: input.window.from.toISOString(),
+    to: input.window.to.toISOString(),
+    previousFrom: input.window.previousFrom.toISOString(),
+    dayFrom: input.window.dayFrom,
+    dayTo: input.window.dayTo,
+    archiveFrom: input.archiveFrom,
+    archiveTo: input.archiveTo,
+    shadeNight: input.window.grain !== '1d',
+    points: bucketSeries(input.current, input.window.grain),
     airTemp: level(input.current, input.previous, 'airTemp'),
     soilTemp: level(input.current, input.previous, 'soilTemp'),
     airHumidity: level(input.current, input.previous, 'airHumidity'),

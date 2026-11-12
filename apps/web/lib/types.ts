@@ -38,6 +38,8 @@ export type Overview = {
 
 export type HistorySpan = "24h" | "7d" | "30d";
 
+export type HistoryGrain = "30m" | "2h" | "1d";
+
 export type LevelCompare = {
   avg: number | null;
   min: number | null;
@@ -67,10 +69,15 @@ export type HistoryPoint = {
 };
 
 export type HistoryResponse = {
-  span: HistorySpan;
+  span: HistorySpan | null;
+  grain: HistoryGrain;
   from: string;
   to: string;
   previousFrom: string;
+  dayFrom: string;
+  dayTo: string;
+  archiveFrom: string | null;
+  archiveTo: string | null;
   shadeNight: boolean;
   points: HistoryPoint[];
   airTemp: LevelCompare;

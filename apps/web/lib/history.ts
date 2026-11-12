@@ -1,5 +1,5 @@
 import { formatMetric } from "@/lib/metrics";
-import type { HistorySpan } from "@/lib/types";
+import type { HistoryGrain, HistorySpan } from "@/lib/types";
 
 export const HISTORY_SPANS: {
   id: HistorySpan;
@@ -50,12 +50,34 @@ export function formatSigned(value: number, digits: number) {
   return abs;
 }
 
-export function historyTickLabel(iso: string, span: HistorySpan) {
+export function isDayKey(value: string | undefined): value is string {
+  if (!value || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
+  const [year, month, day] = value.split("-").map(Number);
+  const date = new Date(year, month - 1, day);
+  return date.getFullYear() === year && date.getMonth() === month - 1 && date.getDate() === day;
+}
+
+export function inclusiveDays(from: string, to: string) {
+  const [fromYear, fromMonth, fromDay] = from.split("-").map(Number);
+  const [toYear, toMonth, toDay] = to.split("-").map(Number);
+  const start = new Date(fromYear, fromMonth - 1, fromDay);
+  const end = new Date(toYear, toMonth - 1, toDay);
+  return Math.round((end.getTime() - start.getTime()) / 86_400_000) + 1;
+}
+
+export function historyTickLabel(iso: string, grain: HistoryGrain, days: number) {
   const date = new Date(iso);
-  if (span === "24h") {
+  if (grain === "30m") {
     return new Intl.DateTimeFormat("hy-AM", {
       hour: "2-digit",
       minute: "2-digit",
+    }).format(date);
+  }
+  if (grain === "2h" && days <= 2) {
+    return new Intl.DateTimeFormat("hy-AM", {
+      day: "numeric",
+      month: "short",
+      hour: "2-digit",
     }).format(date);
   }
   return new Intl.DateTimeFormat("hy-AM", {
@@ -66,5 +88,24 @@ export function historyTickLabel(iso: string, span: HistorySpan) {
 
 export function historyRangeLabel(from: string, to: string) {
   const fmt = new Intl.DateTimeFormat("hy-AM", { day: "numeric", month: "long" });
-  return `${fmt.format(new Date(from))} – ${fmt.format(new Date(to))}`;
+  const start = fmt.format(new Date(from));
+  const end = fmt.format(new Date(to));
+  return start === end ? start : `${start} – ${end}`;
+}
+
+export function historySectionTitle(span: HistorySpan | null, dayFrom: string, dayTo: string) {
+  if (span) return historySpanMeta(span).title;
+  return dayFrom === dayTo ? "Ընտրված օր" : "Ընտրված օրեր";
+}
+
+export function historySectionNote(grain: HistoryGrain) {
+  if (grain === "30m") return "Յուրաքանչյուր կետը 30 րոպե է. մուգ շերտը գիշերն է։";
+  if (grain === "2h") return "Յուրաքանչյուր կետը 2 ժամ է. մուգ շերտը գիշերն է։";
+  return "Յուրաքանչյուր կետը մեկ օր է. տեղումները օրվա գումարն են։";
+}
+
+export function historyPreviousLabel(span: HistorySpan | null, dayFrom: string, dayTo: string) {
+  if (span) return historySpanMeta(span).previous;
+  const days = inclusiveDays(dayFrom, dayTo);
+  return days <= 1 ? "նախորդ օրը" : `նախորդ ${days} օր`;
 }

@@ -1,6 +1,13 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service.js';
-import { buildHistory, historyWindow, parseHistorySpan, type HistorySample } from './history-series.js';
+import {
+  buildHistory,
+  dayKey,
+  historyWindow,
+  parseHistorySpan,
+  resolveDayRange,
+  type HistorySample,
+} from './history-series.js';
 
 const historySelect = {
   recordedAt: true,
@@ -36,26 +43,40 @@ export class ReadingsService {
     });
   }
 
-  async history(spanRaw?: string) {
-    const span = parseHistorySpan(spanRaw);
-    const now = new Date();
-    const window = historyWindow(span, now);
+  async history(query: { span?: string; from?: string; to?: string }) {
+    const custom = resolveDayRange(query.from, query.to);
+    const span = custom ? null : parseHistorySpan(query.span);
+    const window = custom ?? historyWindow(span ?? '7d', new Date());
     const station = await this.prisma.station.findFirst({
       orderBy: { createdAt: 'asc' },
     });
 
     if (!station) {
-      return buildHistory({ span, now, current: [], previous: [] });
+      return buildHistory({
+        span,
+        window,
+        archiveFrom: null,
+        archiveTo: null,
+        current: [],
+        previous: [],
+      });
     }
 
-    const rows = await this.prisma.reading.findMany({
-      where: {
-        stationId: station.id,
-        recordedAt: { gte: window.previousFrom, lte: window.to },
-      },
-      orderBy: { recordedAt: 'asc' },
-      select: historySelect,
-    });
+    const [bounds, rows] = await Promise.all([
+      this.prisma.reading.aggregate({
+        where: { stationId: station.id },
+        _min: { recordedAt: true },
+        _max: { recordedAt: true },
+      }),
+      this.prisma.reading.findMany({
+        where: {
+          stationId: station.id,
+          recordedAt: { gte: window.previousFrom, lte: window.to },
+        },
+        orderBy: { recordedAt: 'asc' },
+        select: historySelect,
+      }),
+    ]);
 
     const current: HistorySample[] = [];
     const previous: HistorySample[] = [];
@@ -64,6 +85,13 @@ export class ReadingsService {
       else previous.push(row);
     }
 
-    return buildHistory({ span, now, current, previous });
+    return buildHistory({
+      span,
+      window,
+      archiveFrom: bounds._min.recordedAt ? dayKey(bounds._min.recordedAt) : null,
+      archiveTo: bounds._max.recordedAt ? dayKey(bounds._max.recordedAt) : null,
+      current,
+      previous,
+    });
   }
 }

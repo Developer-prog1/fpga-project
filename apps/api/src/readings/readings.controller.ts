@@ -6,8 +6,8 @@ export class ReadingsController {
   constructor(private readonly readingsService: ReadingsService) {}
 
   @Get('history')
-  history(@Query('span') span?: string) {
-    return this.readingsService.history(span);
+  history(@Query('span') span?: string, @Query('from') from?: string, @Query('to') to?: string) {
+    return this.readingsService.history({ span, from, to });
   }
 
   @Get()

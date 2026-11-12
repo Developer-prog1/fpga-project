@@ -1,5 +1,12 @@
 import { describe, expect, it } from 'vitest';
-import { buildHistory, parseHistorySpan, type HistorySample } from './history-series.js';
+import {
+  buildHistory,
+  historyWindow,
+  parseHistorySpan,
+  resolveDayRange,
+  type HistorySample,
+  type HistorySpan,
+} from './history-series.js';
 
 function sample(at: Date, patch: Partial<HistorySample> = {}): HistorySample {
   return {
@@ -27,20 +34,52 @@ describe('parseHistorySpan', () => {
   });
 });
 
+describe('resolveDayRange', () => {
+  it('uses the chosen local day and the day before it for comparison', () => {
+    const range = resolveDayRange('2026-11-03', '2026-11-03');
+    expect(range?.grain).toBe('30m');
+    expect(range?.dayFrom).toBe('2026-11-03');
+    expect(range?.from).toEqual(new Date(2026, 10, 3, 0, 0, 0, 0));
+    expect(range?.previousFrom).toEqual(new Date(2026, 10, 2, 0, 0, 0, 0));
+    expect(range?.to.getDate()).toBe(3);
+    expect(range?.to.getHours()).toBe(23);
+  });
+
+  it('orders a backwards range and groups a long stretch by day', () => {
+    const range = resolveDayRange('2026-11-12', '2026-10-20');
+    expect(range?.dayFrom).toBe('2026-10-20');
+    expect(range?.dayTo).toBe('2026-11-12');
+    expect(range?.grain).toBe('1d');
+  });
+
+  it('rejects a date that does not exist', () => {
+    expect(resolveDayRange('2026-02-31', '2026-02-31')).toBeNull();
+    expect(resolveDayRange(undefined, undefined)).toBeNull();
+  });
+});
+
 describe('buildHistory', () => {
   const now = new Date(2026, 10, 12, 15, 0, 0);
 
+  function built(span: HistorySpan, current: HistorySample[], previous: HistorySample[]) {
+    return buildHistory({
+      span,
+      window: historyWindow(span, now),
+      archiveFrom: null,
+      archiveTo: null,
+      current,
+      previous,
+    });
+  }
+
   it('averages a half-hour bucket and sums the rain inside it', () => {
-    const history = buildHistory({
-      span: '24h',
-      now,
-      current: [
+    const history = built('24h', [
         sample(new Date(2026, 10, 12, 14, 10), { airTemp: 10, rainfallMm: 1.2 }),
         sample(new Date(2026, 10, 12, 14, 20), { airTemp: 12, rainfallMm: 1.8 }),
         sample(new Date(2026, 10, 12, 14, 40), { airTemp: 20, rainfallMm: 0.4 }),
       ],
-      previous: [],
-    });
+      [],
+    );
 
     expect(history.points).toHaveLength(2);
     expect(history.points[0]?.airTemp).toBe(11);
@@ -54,16 +93,13 @@ describe('buildHistory', () => {
   });
 
   it('rolls a month into local days and compares it with the previous window', () => {
-    const history = buildHistory({
-      span: '30d',
-      now,
-      current: [
+    const history = built('30d', [
         sample(new Date(2026, 10, 3, 8, 0), { airTemp: 10, rainfallMm: 1.25 }),
         sample(new Date(2026, 10, 3, 21, 15), { airTemp: 20, rainfallMm: 1.25 }),
         sample(new Date(2026, 10, 4, 9, 0), { airTemp: 16, rainfallMm: 0 }),
       ],
-      previous: [sample(new Date(2026, 9, 20, 12, 0), { airTemp: 8, rainfallMm: 4 })],
-    });
+      [sample(new Date(2026, 9, 20, 12, 0), { airTemp: 8, rainfallMm: 4 })],
+    );
 
     expect(history.shadeNight).toBe(false);
     expect(history.points).toHaveLength(2);
@@ -81,12 +117,7 @@ describe('buildHistory', () => {
   });
 
   it('leaves the delta empty when the previous window has no readings', () => {
-    const history = buildHistory({
-      span: '7d',
-      now,
-      current: [sample(new Date(2026, 10, 12, 10, 0), { airTemp: 15 })],
-      previous: [],
-    });
+    const history = built('7d', [sample(new Date(2026, 10, 12, 10, 0), { airTemp: 15 })], []);
 
     expect(history.airTemp.avg).toBe(15);
     expect(history.airTemp.previousAvg).toBeNull();
