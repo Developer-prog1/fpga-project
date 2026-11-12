@@ -1,11 +1,12 @@
+import Link from "next/link";
 import { api } from "@/lib/api";
 import type { Overview, Reading } from "@/lib/types";
 import { airPath } from "@/lib/air-detail";
 import { GROUPS, METRICS, downsample, formatMetric, seriesRange, windDegNorm, windDirLabel } from "@/lib/metrics";
-import { ChartFrame, SectionHeading } from "@/components/section-heading";
+import { SectionHeading } from "@/components/section-heading";
 import { EmptyState } from "@/components/empty-state";
 import { MetricCard } from "@/components/metric-card";
-import { ChartLegend, TimeChart } from "@/components/charts";
+import { TrendCharts } from "@/components/trend-charts";
 import { HeroNow } from "@/components/hero-now";
 
 function pickReadings(rows: Reading[], size = 48) {
@@ -30,57 +31,6 @@ export default async function Home() {
   const latest = overview?.latest;
   const series = readings ?? [];
   const chart = pickReadings(series);
-  const labels = chart.map((row) => hourLabel(row.recordedAt));
-  const times = chart.map((row) => row.recordedAt);
-
-  const tempSeries = [
-    { label: "Օդ", color: "#7a2433", values: chart.map((r) => r.airTemp), unit: "°C", digits: 1, kind: "area" as const },
-    { label: "Հող", color: "#6b4c2a", values: chart.map((r) => r.soilTemp), unit: "°C", digits: 1, kind: "area" as const },
-  ];
-  const humidSeries = [
-    { label: "Օդ", color: "#3d5a80", values: chart.map((r) => r.airHumidity), unit: "%", digits: 0, kind: "area" as const },
-    { label: "Հող", color: "#2a4538", values: chart.map((r) => r.soilMoisture), unit: "%", digits: 1, kind: "area" as const },
-  ];
-  const windRainSeries = [
-    {
-      label: "Քամի",
-      color: "#2e4a6e",
-      values: chart.map((r) => r.windSpeed),
-      unit: "m/s",
-      digits: 1,
-      kind: "area" as const,
-      axis: "left" as const,
-    },
-    {
-      label: "Տեղումներ",
-      color: "#c4a35a",
-      values: chart.map((r) => r.rainfallMm),
-      unit: "մմ",
-      digits: 2,
-      kind: "bars" as const,
-      axis: "right" as const,
-    },
-  ];
-  const lightSeries = [
-    {
-      label: "Լույս",
-      color: "#c4a35a",
-      values: chart.map((r) => r.lightLux),
-      unit: "lux",
-      digits: 0,
-      kind: "area" as const,
-      axis: "left" as const,
-    },
-    {
-      label: "UV",
-      color: "#9a3b28",
-      values: chart.map((r) => r.uvIndex),
-      unit: "",
-      digits: 1,
-      kind: "line" as const,
-      axis: "right" as const,
-    },
-  ];
 
   return (
     <div className="py-8 lg:py-10">
@@ -136,33 +86,13 @@ export default async function Home() {
             <SectionHeading
               title="24 ժամվա ընթացք"
               note="Միավորները բաժանված են առանցքներով. մուգ շերտը գիշերն է։"
+              action={
+                <Link href="/history" className="chip">
+                  Պատմություն
+                </Link>
+              }
             />
-            <div className="grid gap-4 lg:grid-cols-2">
-              <ChartFrame title="Ջերմաստիճան" note="օդ և հող · նույն սանդղակ, °C">
-                <ChartLegend series={tempSeries} />
-                <div className="mt-3">
-                  <TimeChart labels={labels} times={times} series={tempSeries} unitLeft="°C" />
-                </div>
-              </ChartFrame>
-              <ChartFrame title="Խոնավություն" note="օդ և հող · նույն սանդղակ, %">
-                <ChartLegend series={humidSeries} />
-                <div className="mt-3">
-                  <TimeChart labels={labels} times={times} series={humidSeries} unitLeft="%" />
-                </div>
-              </ChartFrame>
-              <ChartFrame title="Քամի և տեղումներ" note="ձախում քամի (m/s), աջում անձրևի սյուներ (մմ)">
-                <ChartLegend series={windRainSeries} />
-                <div className="mt-3">
-                  <TimeChart labels={labels} times={times} series={windRainSeries} unitLeft="m/s" unitRight="մմ" />
-                </div>
-              </ChartFrame>
-              <ChartFrame title="Լույս և UV" note="ձախում lux, աջում ուլտրամանուշակագույն ինդեքս">
-                <ChartLegend series={lightSeries} />
-                <div className="mt-3">
-                  <TimeChart labels={labels} times={times} series={lightSeries} unitLeft="lux" unitRight="UV" />
-                </div>
-              </ChartFrame>
-            </div>
+            <TrendCharts rows={chart} labelFor={hourLabel} />
           </section>
         </div>
       )}

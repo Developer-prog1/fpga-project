@@ -1,9 +1,20 @@
-export function SectionHeading({ title, note }: { title: string; note?: string }) {
+export function SectionHeading({
+  title,
+  note,
+  action,
+}: {
+  title: string;
+  note?: string;
+  action?: React.ReactNode;
+}) {
   return (
-    <div className="mb-5">
-      <h2 className="font-serif text-[1.85rem] leading-none tracking-tight">{title}</h2>
-      {note ? <p className="mt-2 text-sm text-ink-soft">{note}</p> : null}
-      <div className="gold-rule mt-3 w-24" />
+    <div className="mb-5 flex flex-wrap items-end justify-between gap-3">
+      <div>
+        <h2 className="font-serif text-[1.85rem] leading-none tracking-tight">{title}</h2>
+        {note ? <p className="mt-2 text-sm text-ink-soft">{note}</p> : null}
+        <div className="gold-rule mt-3 w-24" />
+      </div>
+      {action}
     </div>
   );
 }

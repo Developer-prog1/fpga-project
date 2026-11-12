@@ -35,3 +35,52 @@ export type Overview = {
     rainfallMm: Range;
   } | null;
 };
+
+export type HistorySpan = "24h" | "7d" | "30d";
+
+export type LevelCompare = {
+  avg: number | null;
+  min: number | null;
+  max: number | null;
+  previousAvg: number | null;
+  delta: number | null;
+};
+
+export type SumCompare = {
+  sum: number | null;
+  previousSum: number | null;
+  delta: number | null;
+};
+
+export type HistoryPoint = {
+  recordedAt: string;
+  airTemp: number;
+  soilTemp: number;
+  airHumidity: number;
+  soilMoisture: number;
+  windSpeed: number;
+  rainfallMm: number;
+  pressureHpa: number;
+  lightLux: number;
+  uvIndex: number;
+  dewPoint: number;
+};
+
+export type HistoryResponse = {
+  span: HistorySpan;
+  from: string;
+  to: string;
+  previousFrom: string;
+  shadeNight: boolean;
+  points: HistoryPoint[];
+  airTemp: LevelCompare;
+  soilTemp: LevelCompare;
+  airHumidity: LevelCompare;
+  soilMoisture: LevelCompare;
+  windSpeed: LevelCompare;
+  pressureHpa: LevelCompare;
+  lightLux: LevelCompare;
+  uvIndex: LevelCompare;
+  dewPoint: LevelCompare;
+  rainfallMm: SumCompare;
+};

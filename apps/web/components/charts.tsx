@@ -177,12 +177,14 @@ export function TimeChart({
   series,
   unitLeft,
   unitRight,
+  shadeNight = true,
 }: {
   labels: string[];
   times?: string[];
   series: ChartSeries[];
   unitLeft?: string;
   unitRight?: string;
+  shadeNight?: boolean;
 }) {
   const w = 720;
   const h = 268;
@@ -211,15 +213,16 @@ export function TimeChart({
     }));
   }
 
-  const nightRects =
-    times?.flatMap((iso, i) => {
-      const hour = new Date(iso).getHours();
-      const night = hour >= 20 || hour < 6;
-      if (!night || i === n - 1) return [];
-      const x = xAt(i, n, pad.l, innerW);
-      const next = xAt(i + 1, n, pad.l, innerW);
-      return [{ x, width: Math.max(next - x, 0.5) }];
-    }) ?? [];
+  const nightRects = shadeNight
+    ? (times?.flatMap((iso, i) => {
+        const hour = new Date(iso).getHours();
+        const night = hour >= 20 || hour < 6;
+        if (!night || i === n - 1) return [];
+        const x = xAt(i, n, pad.l, innerW);
+        const next = xAt(i + 1, n, pad.l, innerW);
+        return [{ x, width: Math.max(next - x, 0.5) }];
+      }) ?? [])
+    : [];
 
   const timeTicks = [0, 0.25, 0.5, 0.75, 1].map((t) => {
     const i = Math.min(labels.length - 1, Math.round(t * (labels.length - 1)));
@@ -345,6 +348,7 @@ export function TimeChart({
             textAnchor={i === 0 ? "start" : i === timeTicks.length - 1 ? "end" : "middle"}
             fill="#5c5148"
             fontSize="11"
+            style={{ fontFamily: "var(--font-sans-armenian), sans-serif" }}
           >
             {tick.label}
           </text>

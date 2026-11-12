@@ -48,34 +48,60 @@ async function main() {
   const now = new Date();
   now.setMinutes(Math.floor(now.getMinutes() / 15) * 15, 0, 0);
 
-  const points = 24 * 4; // 15-minute intervals
+  const days = 60;
+  const stepsPerDay = 24 * 4;
+  const points = days * stepsPerDay;
+  const rainEvents = [
+    { center: 8.4, width: 0.5, amount: 0.45 },
+    { center: 22.1, width: 0.85, amount: 0.8 },
+    { center: 37.3, width: 0.4, amount: 0.5 },
+    { center: 49.2, width: 0.55, amount: 0.7 },
+    { center: 56.6, width: 0.28, amount: 0.35 },
+  ];
+
+  let soil = 46;
   const readings = Array.from({ length: points + 1 }, (_, i) => {
     const recordedAt = new Date(now.getTime() - (points - i) * 15 * 60 * 1000);
     const hour = recordedAt.getHours() + recordedAt.getMinutes() / 60;
+    const day = i / stepsPerDay;
     const dayWave = Math.sin(((hour - 8) / 24) * Math.PI * 2);
-    const noise = (seed: number) => Math.sin(i * 0.35 + seed) * 0.5;
+    const noise = (seed: number) => Math.sin(i * 0.37 + seed) * 0.45;
+    const drift = -2 + (day / days) * 3.5;
+    const cold = Math.exp(-((day - 18) ** 2) / 14) * -5.5;
+    const warm = Math.exp(-((day - 44) ** 2) / 22) * 3.2;
 
-    const airTemp = round(18 + dayWave * 7 + noise(1));
-    const airHumidity = round(clamp(62 - dayWave * 18 + noise(2) * 4, 28, 92));
-    const soilTemp = round(16 + dayWave * 4 + noise(3) * 0.6);
-    const rainPulse = hour > 3 && hour < 6 ? 0.6 + Math.abs(noise(4)) : 0;
+    let rainPulse = 0;
+    for (const event of rainEvents) {
+      const dist = Math.abs(day - event.center);
+      if (dist >= event.width) continue;
+      const bell = Math.cos((dist / event.width) * (Math.PI / 2)) ** 2;
+      const wetHours = hour >= 15 && hour <= 21 ? 1 : 0.12;
+      rainPulse += event.amount * bell * wetHours;
+    }
+    if (day >= days - 1 && hour > 3 && hour < 6) rainPulse += 0.32;
     const rainfallMm = round(rainPulse, 2);
-    const soilMoisture = round(
-      clamp(38 - i * 0.04 + rainPulse * 4 + noise(5), 18, 70),
+
+    const airTemp = round(clamp(18 + drift + cold + warm + dayWave * 7 + noise(1), -3, 38));
+    const airHumidity = round(clamp(62 - dayWave * 18 + rainfallMm * 14 + noise(2) * 4, 28, 96));
+    const soilTemp = round(16.2 + drift * 0.55 + cold * 0.4 + warm * 0.35 + dayWave * 3.4 + noise(3) * 0.35);
+    soil = clamp(soil - 0.011 + rainfallMm * 2.2 + noise(5) * 0.02, 17, 74);
+    const windSpeed = round(
+      clamp(2.1 + Math.abs(dayWave) * 2.5 + rainfallMm * 1.6 + Math.abs(noise(6)) * 1.2, 0.2, 14),
+      1,
     );
-    const windSpeed = round(clamp(2.4 + Math.abs(dayWave) * 2.8 + noise(6) * 1.4, 0.2, 14), 1);
-    const windDirDeg = Math.round((240 + noise(7) * 40 + i * 1.2) % 360);
+    const windDirDeg = Math.round((220 + noise(7) * 36 + day * 5.5) % 360);
     const isDay = hour >= 6 && hour <= 19;
     const sun = isDay ? Math.sin(((hour - 6) / 13) * Math.PI) : 0;
-    const lightLux = round(sun * 78000 + (isDay ? 400 : 8), 0);
-    const uvIndex = round(clamp(sun * 7.4, 0, 11), 1);
-    const pressureHpa = round(1014.5 + dayWave * -2.2 + noise(8) * 0.6, 1);
+    const cloud = rainfallMm > 0.2 ? 0.38 : 1;
+    const lightLux = round(sun * 78000 * cloud + (isDay ? 400 : 8), 0);
+    const uvIndex = round(clamp(sun * 7.4 * cloud, 0, 11), 1);
+    const pressureHpa = round(1015 + Math.sin(day / 9) * 4 + dayWave * -1.6 - rainfallMm * 3.2 + noise(8) * 0.35, 1);
 
     return {
       recordedAt,
       windSpeed,
       windDirDeg: windDirDeg < 0 ? windDirDeg + 360 : windDirDeg,
-      soilMoisture,
+      soilMoisture: round(soil, 1),
       soilTemp,
       airTemp,
       airHumidity,
@@ -88,11 +114,13 @@ async function main() {
     };
   });
 
-  await prisma.reading.createMany({ data: readings });
+  for (let offset = 0; offset < readings.length; offset += 400) {
+    await prisma.reading.createMany({ data: readings.slice(offset, offset + 400) });
+  }
 
   console.log("Seed complete:");
   console.log(`  station:  ${station.name}`);
-  console.log(`  readings: ${readings.length}`);
+  console.log(`  readings: ${readings.length} (${days} days)`);
 }
 
 main()

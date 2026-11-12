@@ -1,10 +1,11 @@
 import Image from "next/image";
 import Link from "next/link";
+import { SiteNav } from "@/components/site-nav";
 
 export function SiteHeader() {
   return (
     <header className="site-header">
-      <div className="flex w-full items-center justify-center px-6 py-4">
+      <div className="flex w-full flex-col items-center gap-4 px-6 py-4">
         <Link href="/" className="flex items-center gap-3 text-ink">
           <span className="rounded-full ring-1 ring-gold/80 ring-offset-4 ring-offset-[#f7f1e8]">
             <Image
@@ -24,6 +25,7 @@ export function SiteHeader() {
             <span className="gold-rule w-14" aria-hidden />
           </span>
         </Link>
+        <SiteNav />
       </div>
     </header>
   );
