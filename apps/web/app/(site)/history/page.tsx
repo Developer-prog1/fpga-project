@@ -63,24 +63,23 @@ export default async function HistoryPage({ searchParams }: HistoryPageProps) {
   return (
     <div className="py-8 lg:py-10">
       <div className="space-y-12 px-6 sm:px-8 lg:px-12">
-        <header className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
-          <div>
-            <p className="kicker text-gold">Դաշտային արխիվ</p>
-            <h1 className="mt-3 font-serif text-4xl tracking-tight sm:text-5xl">Պատմություն</h1>
-            <div className="gold-rule mt-4 w-24" />
-            <p className="mt-4 max-w-xl text-lg leading-relaxed text-ink-soft">
-              {historyRangeLabel(history.from, history.to)}. Թիվը փոփոխությունն է նախորդ նույն
-              երկարության համեմատ։
-            </p>
-          </div>
-          <HistoryFilter
-            span={history.span}
-            dayFrom={history.dayFrom}
-            dayTo={history.dayTo}
-            archiveFrom={history.archiveFrom}
-            archiveTo={history.archiveTo}
-          />
+        <header>
+          <p className="kicker text-gold">Դաշտային արխիվ</p>
+          <h1 className="mt-3 font-serif text-4xl tracking-tight sm:text-5xl">Պատմություն</h1>
+          <div className="gold-rule mt-4 w-24" />
+          <p className="mt-4 max-w-xl text-lg leading-relaxed text-ink-soft">
+            {historyRangeLabel(history.from, history.to)}. Թիվը փոփոխությունն է նախորդ նույն
+            երկարության համեմատ։
+          </p>
         </header>
+
+        <HistoryFilter
+          span={history.span}
+          dayFrom={history.dayFrom}
+          dayTo={history.dayTo}
+          archiveFrom={history.archiveFrom}
+          archiveTo={history.archiveTo}
+        />
 
         <HistoryCompare
           history={history}

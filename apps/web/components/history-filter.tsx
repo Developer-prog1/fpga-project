@@ -39,6 +39,22 @@ function shortDay(key: string) {
   return `${date.getDate()} ${MONTHS_SHORT[date.getMonth()]}`;
 }
 
+function CalendarIcon() {
+  return (
+    <svg viewBox="0 0 24 24" className="size-5" fill="none" aria-hidden>
+      <rect x="3.5" y="4.5" width="17" height="16" rx="3" stroke="currentColor" strokeWidth="1.6" />
+      <path d="M3.5 9.5h17" stroke="currentColor" strokeWidth="1.6" />
+      <path d="M8 3v3.2M16 3v3.2" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+      <path
+        d="M8 13.2h.01M12 13.2h.01M16 13.2h.01M8 16.6h.01M12 16.6h.01"
+        stroke="currentColor"
+        strokeWidth="2.4"
+        strokeLinecap="round"
+      />
+    </svg>
+  );
+}
+
 function monthCells(year: number, month: number) {
   const first = new Date(year, month, 1);
   const offset = (first.getDay() + 6) % 7;
@@ -132,23 +148,42 @@ export function HistoryFilter({
     : "Օրացույց";
 
   return (
-    <div className="flex flex-wrap items-center gap-2">
-      <div ref={rootRef} className="relative">
-        <button
-          type="button"
-          className={custom ? "chip chip-active" : "chip"}
-          aria-expanded={open}
-          aria-controls={dialogId}
-          onClick={() => (open ? setOpen(false) : openCalendar())}
+    <div ref={rootRef} className="relative flex items-center gap-4 sm:gap-6">
+      <span
+        className="h-px min-w-6 flex-1 bg-gradient-to-r from-transparent via-gold/40 to-gold"
+        aria-hidden
+      />
+      <button
+        type="button"
+        className={`inline-flex shrink-0 items-center gap-3 rounded-full border px-4 py-2 shadow-[0_18px_36px_-24px_rgba(26,18,14,0.55)] transition duration-200 hover:-translate-y-0.5 sm:px-5 sm:py-2.5 ${
+          custom
+            ? "border-ink bg-ink text-cream"
+            : "border-gold/55 bg-paper text-ink hover:border-gold hover:shadow-[0_22px_40px_-22px_rgba(122,36,51,0.35)]"
+        }`}
+        aria-expanded={open}
+        aria-controls={dialogId}
+        aria-label={custom ? `Օրացույց, ${buttonLabel}` : "Օրացույց"}
+        onClick={() => (open ? setOpen(false) : openCalendar())}
+      >
+        <span
+          className={`grid size-10 place-items-center rounded-full ${
+            custom ? "bg-gold text-ink" : "bg-garnet text-cream"
+          }`}
         >
-          {buttonLabel}
-        </button>
-        {open ? (
+          <CalendarIcon />
+        </span>
+        <span className="font-serif text-lg leading-none tracking-wide sm:text-xl">{buttonLabel}</span>
+      </button>
+      <span
+        className="h-px min-w-6 flex-1 bg-gradient-to-l from-transparent via-gold/40 to-gold"
+        aria-hidden
+      />
+      {open ? (
           <div
             id={dialogId}
             role="dialog"
             aria-label="Օրացույց"
-            className="panel absolute left-0 z-30 mt-2 w-[20.5rem] max-w-[calc(100vw-3rem)] rounded-[24px] p-4 lg:left-auto lg:right-0"
+            className="panel absolute top-full left-1/2 z-30 mt-3 w-[20.5rem] max-w-[calc(100vw-3rem)] -translate-x-1/2 rounded-[24px] p-4"
           >
             <div className="flex items-center justify-between gap-3">
               <button
@@ -241,7 +276,6 @@ export function HistoryFilter({
             </button>
           </div>
         ) : null}
-      </div>
     </div>
   );
 }
