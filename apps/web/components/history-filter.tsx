@@ -236,7 +236,6 @@ export function HistoryFilter({
                     aria-label={`${date.getDate()} ${MONTHS[date.getMonth()]} ${date.getFullYear()}`}
                     className="relative h-9 disabled:cursor-default disabled:text-ink/25"
                     onClick={() => pick(key)}
-                    onDoubleClick={() => apply(key, key)}
                   >
                     {inside || (endpoint && lo !== hi) ? (
                       <span
@@ -255,20 +254,20 @@ export function HistoryFilter({
               })}
             </div>
 
-            <p className="mt-3 min-h-5 text-sm text-ink-soft">
-              {start
-                ? end
-                  ? `${shortDay(lo!)} – ${shortDay(hi!)}`
-                  : shortDay(start)
-                : archiveFrom
-                  ? "Սեղմիր օրը։ Երկրորդ օրը միջակայք է դարձնում։"
-                  : "Արխիվում օր չկա։"}
+            <p className="mt-3 min-h-10 text-sm leading-relaxed text-ink-soft">
+              {!archiveFrom
+                ? "Արխիվում դեռ օր չկա, որ կարելի լինի ընտրել։"
+                : !start
+                  ? "Ընտրիր երկու օր. առաջինը սկիզբն է, երկրորդը՝ վերջը։"
+                  : !end
+                    ? `Սկիզբը ${shortDay(start)}-ն է. հիմա նշիր վերջի օրը։`
+                    : `${shortDay(lo!)} – ${shortDay(hi!)}`}
             </p>
             <button
               type="button"
               className="btn-primary mt-3 w-full"
-              disabled={!start || !isDayKey(start)}
-              onClick={() => start && apply(start, end ?? start)}
+              disabled={!start || !end || !isDayKey(start) || !isDayKey(end)}
+              onClick={() => start && end && apply(start, end)}
             >
               Դիտել
             </button>
