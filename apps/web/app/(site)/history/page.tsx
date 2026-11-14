@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { EmptyState } from "@/components/empty-state";
+import { HistoryAwait } from "@/components/history-await";
 import { HistoryCompare } from "@/components/history-compare";
 import { HistoryFilter } from "@/components/history-filter";
 import { SectionHeading } from "@/components/section-heading";
@@ -54,8 +55,14 @@ export default async function HistoryPage({ searchParams }: HistoryPageProps) {
   }
 
   return (
-    <div className="py-8 lg:py-10">
-      <div className="space-y-12 px-6 sm:px-8 lg:px-12">
+    <div className={selected ? "py-8 lg:py-10" : "flex h-[calc(100dvh-9rem)] flex-col py-6"}>
+      <div
+        className={
+          selected
+            ? "space-y-12 px-6 sm:px-8 lg:px-12"
+            : "flex min-h-0 flex-1 flex-col gap-6 px-6 sm:px-8 lg:px-12"
+        }
+      >
         <header>
           <p className="kicker text-gold">Դաշտային արխիվ</p>
           <h1 className="mt-3 font-serif text-4xl tracking-tight sm:text-5xl">Պատմություն</h1>
@@ -75,7 +82,7 @@ export default async function HistoryPage({ searchParams }: HistoryPageProps) {
           archiveTo={history.archiveTo}
         />
 
-        {selected ? <HistoryResults history={history} /> : null}
+        {selected ? <HistoryResults history={history} /> : <HistoryAwait />}
       </div>
     </div>
   );

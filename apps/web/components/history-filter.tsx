@@ -146,7 +146,7 @@ export function HistoryFilter({
       : "Օրացույց";
 
   return (
-    <div ref={rootRef} className="relative flex items-center gap-4 sm:gap-6">
+    <div ref={rootRef} className="relative z-20 flex items-center gap-4 sm:gap-6">
       <span
         className="h-px min-w-6 flex-1 bg-gradient-to-r from-transparent via-gold/40 to-gold"
         aria-hidden

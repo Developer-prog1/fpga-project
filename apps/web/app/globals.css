@@ -322,10 +322,146 @@ body {
   background: rgba(247, 241, 232, 0.18);
 }
 
+.history-await {
+  flex: 1 1 auto;
+  min-height: 0;
+  pointer-events: none;
+  user-select: none;
+  overflow: hidden;
+  mask-image: linear-gradient(180deg, transparent 0%, #000 7%, #000 96%, transparent 100%);
+}
+
+.history-await svg {
+  width: 100%;
+  height: 100%;
+}
+
+.await-ring,
+.await-flow {
+  fill: none;
+  stroke-linecap: round;
+}
+
+.await-trace {
+  fill: none;
+  stroke: rgba(196, 163, 90, 0.42);
+  stroke-width: 1.2;
+  stroke-linecap: round;
+}
+
+.await-trace-garnet {
+  stroke: rgba(122, 36, 51, 0.28);
+}
+
+.await-ring {
+  stroke: rgba(196, 163, 90, 0.82);
+  stroke-width: 1.35;
+}
+
+.await-ring-soft {
+  stroke: rgba(196, 163, 90, 0.48);
+  stroke-width: 1.15;
+}
+
+.await-ring-garnet {
+  stroke: rgba(122, 36, 51, 0.55);
+  stroke-width: 1.15;
+}
+
+.await-flow {
+  stroke: #c4a35a;
+  stroke-width: 2.2;
+  stroke-dasharray: 110 890;
+  animation: await-flow 11s linear infinite;
+}
+
+.await-flow-slow {
+  stroke-width: 1.6;
+  stroke-dasharray: 64 936;
+  animation-duration: 16s;
+}
+
+.await-flow-garnet {
+  stroke: #7a2433;
+  stroke-dasharray: 78 922;
+  animation-duration: 13s;
+  animation-direction: reverse;
+}
+
+.await-spin,
+.await-spin-rev,
+.await-breathe,
+.await-spark {
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+.await-spin {
+  animation: await-spin 28s linear infinite;
+}
+
+.await-spin-rev {
+  animation: await-spin 18s linear infinite reverse;
+}
+
+.await-breathe {
+  animation: await-breathe 7.5s ease-in-out infinite;
+}
+
+.await-spark {
+  fill: #c4a35a;
+  animation: await-spark 6.8s ease-in-out infinite;
+}
+
+.await-spark-garnet {
+  fill: #7a2433;
+}
+
+@keyframes await-flow {
+  to {
+    stroke-dashoffset: -1000;
+  }
+}
+
+@keyframes await-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes await-breathe {
+  0%,
+  100% {
+    opacity: 0.35;
+    transform: scale(0.92);
+  }
+  50% {
+    opacity: 0.8;
+    transform: scale(1);
+  }
+}
+
+@keyframes await-spark {
+  0%,
+  100% {
+    opacity: 0.2;
+    transform: translateY(8px) scale(0.8);
+  }
+  50% {
+    opacity: 0.95;
+    transform: translateY(-14px) scale(1);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .rise,
   .rise-seq > *,
-  .live-dot {
+  .live-dot,
+  .history-await * {
     animation: none;
+  }
+
+  .await-flow {
+    stroke-dasharray: none;
   }
 }
