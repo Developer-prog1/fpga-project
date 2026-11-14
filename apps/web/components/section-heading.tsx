@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 export function SectionHeading({
   title,
   note,
@@ -22,18 +24,33 @@ export function SectionHeading({
 export function ChartFrame({
   title,
   note,
+  href,
   children,
 }: {
   title: string;
   note: string;
+  href?: string;
   children: React.ReactNode;
 }) {
-  return (
-    <article className="panel rounded-[28px] p-5 sm:p-6">
-      <h3 className="font-serif text-xl tracking-tight">{title}</h3>
+  const body = (
+    <>
+      <div className="flex items-start justify-between gap-3">
+        <h3 className="font-serif text-xl tracking-tight">{title}</h3>
+        {href ? <span className="pt-1 text-sm text-gold">Բացել</span> : null}
+      </div>
       <p className="mt-1 text-sm text-ink-soft">{note}</p>
       <div className="gold-rule mt-3 mb-1 w-16" />
       {children}
-    </article>
+    </>
   );
+
+  if (href) {
+    return (
+      <Link href={href} className="panel panel-lift block rounded-[28px] p-5 sm:p-6">
+        {body}
+      </Link>
+    );
+  }
+
+  return <article className="panel rounded-[28px] p-5 sm:p-6">{body}</article>;
 }

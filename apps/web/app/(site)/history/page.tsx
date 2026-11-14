@@ -90,6 +90,7 @@ export default async function HistoryPage({ searchParams }: HistoryPageProps) {
 
 function HistoryResults({ history }: { history: HistoryResponse }) {
   const days = inclusiveDays(history.dayFrom, history.dayTo);
+  const compareDays = days > 1 && history.grain !== "1d";
 
   return (
     <>
@@ -101,7 +102,11 @@ function HistoryResults({ history }: { history: HistoryResponse }) {
       <section>
         <SectionHeading
           title={historySectionTitle(history.span, history.dayFrom, history.dayTo)}
-          note={historySectionNote(history.grain)}
+          note={
+            compareDays
+              ? "Ամեն գիծը մեկ օր է. ժամերը համընկնում են, որ երևա ո՛ր օրն ինչպես է անցել։ Մուգ շերտը գիշերն է։"
+              : historySectionNote(history.grain)
+          }
         />
         {history.points.length === 0 ? (
           <p className="text-ink-soft">Այս հատվածում չափում չկա։</p>
@@ -110,6 +115,8 @@ function HistoryResults({ history }: { history: HistoryResponse }) {
             rows={history.points}
             labelFor={(iso) => historyTickLabel(iso, history.grain, days)}
             shadeNight={history.shadeNight}
+            compareDays={compareDays}
+            hrefFor={(chartId) => `/history/${chartId}?from=${history.dayFrom}&to=${history.dayTo}`}
           />
         )}
       </section>

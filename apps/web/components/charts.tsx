@@ -58,6 +58,11 @@ function niceBounds(values: number[]) {
   return { min, max };
 }
 
+export function chartDomain(values: number[]) {
+  const finite = values.filter((value) => Number.isFinite(value));
+  return niceBounds(finite.length ? finite : [0, 1]);
+}
+
 function ticks(min: number, max: number) {
   const step = niceStep(max - min || 1);
   const out: number[] = [];
@@ -165,10 +170,12 @@ export type ChartSeries = {
   label: string;
   color: string;
   values: number[];
+  xMinutes?: number[];
   unit?: string;
   kind?: "area" | "line" | "bars";
   axis?: "left" | "right";
   digits?: number;
+  dashed?: boolean;
 };
 
 export function TimeChart({
@@ -178,6 +185,9 @@ export function TimeChart({
   unitLeft,
   unitRight,
   shadeNight = true,
+  height = 268,
+  yDomain,
+  caption,
 }: {
   labels: string[];
   times?: string[];
@@ -185,18 +195,22 @@ export function TimeChart({
   unitLeft?: string;
   unitRight?: string;
   shadeNight?: boolean;
+  height?: number;
+  yDomain?: { min: number; max: number };
+  caption?: string;
 }) {
   const w = 720;
-  const h = 268;
+  const h = height;
   const hasRight = series.some((s) => (s.axis ?? "left") === "right");
   const pad = { l: 58, r: hasRight ? 50 : 18, t: 20, b: 32 };
   const innerW = w - pad.l - pad.r;
   const innerH = h - pad.t - pad.b;
   const n = Math.max(...series.map((s) => s.values.length), 1);
 
+  const clock = series.some((item) => (item.xMinutes?.length ?? 0) > 0);
   const leftVals = series.filter((s) => (s.axis ?? "left") === "left").flatMap((s) => s.values);
   const rightVals = series.filter((s) => s.axis === "right").flatMap((s) => s.values);
-  const left = niceBounds(leftVals.length ? leftVals : [0, 1]);
+  const left = yDomain ?? niceBounds(leftVals.length ? leftVals : [0, 1]);
   const right = niceBounds(rightVals.length ? rightVals : [0, 1]);
   const leftSpan = left.max - left.min || 1;
   const rightSpan = right.max - right.min || 1;
@@ -213,25 +227,45 @@ export function TimeChart({
     }));
   }
 
-  const nightRects = shadeNight
-    ? (times?.flatMap((iso, i) => {
-        const hour = new Date(iso).getHours();
-        const night = hour >= 20 || hour < 6;
-        if (!night || i === n - 1) return [];
-        const x = xAt(i, n, pad.l, innerW);
-        const next = xAt(i + 1, n, pad.l, innerW);
-        return [{ x, width: Math.max(next - x, 0.5) }];
-      }) ?? [])
-    : [];
+  function xFromMinutes(minutes: number) {
+    const clamped = Math.min(1440, Math.max(0, minutes));
+    return pad.l + (clamped / 1440) * innerW;
+  }
 
-  const timeTicks = [0, 0.25, 0.5, 0.75, 1].map((t) => {
-    const i = Math.min(labels.length - 1, Math.round(t * (labels.length - 1)));
-    return { i, label: labels[i] ?? "" };
-  });
+  const nightRects = !shadeNight
+    ? []
+    : clock
+      ? [
+          { x: xFromMinutes(0), width: xFromMinutes(6 * 60) - xFromMinutes(0) },
+          { x: xFromMinutes(20 * 60), width: xFromMinutes(24 * 60) - xFromMinutes(20 * 60) },
+        ]
+      : (times?.flatMap((iso, i) => {
+          const hour = new Date(iso).getHours();
+          const night = hour >= 20 || hour < 6;
+          if (!night || i === n - 1) return [];
+          const x = xAt(i, n, pad.l, innerW);
+          const next = xAt(i + 1, n, pad.l, innerW);
+          return [{ x, width: Math.max(next - x, 0.5) }];
+        }) ?? []);
+
+  const timeTicks =
+    clock || labels.length === 0
+      ? []
+      : [0, 0.25, 0.5, 0.75, 1].map((t) => {
+          const i = Math.min(labels.length - 1, Math.round(t * (labels.length - 1)));
+          return { i, label: labels[i] ?? "" };
+        });
+  const hourTicks: { x: number; label: string; anchor: "start" | "middle" | "end" }[] = clock
+    ? [0, 6, 12, 18, 24].map((hour) => ({
+        x: xFromMinutes(hour * 60),
+        label: `${String(hour).padStart(2, "0")}:00`,
+        anchor: hour === 0 ? "start" : hour === 24 ? "end" : "middle",
+      }))
+    : [];
 
   return (
     <div>
-      <svg viewBox={`0 0 ${w} ${h}`} className="h-auto w-full" role="img">
+      <svg viewBox={`0 0 ${w} ${h}`} className="h-auto w-full" role="img" aria-label={caption}>
         <defs>
           {series.map((item, i) => (
             <linearGradient id={`fill-${i}-${item.color.replace("#", "")}`} key={item.label} x1="0" y1="0" x2="0" y2="1">
@@ -289,6 +323,39 @@ export function TimeChart({
         {series.map((item, si) => {
           const kind = item.kind ?? "area";
           const pts = pointsOf(item.values, item.axis);
+          if (kind === "bars" && item.xMinutes) {
+            const mates = series.filter((other) => (other.kind ?? "area") === "bars" && other.xMinutes);
+            const slots = Math.max(mates.length, 1);
+            const slot = Math.max(mates.indexOf(item), 0);
+            const group = Math.min(14, innerW / 30);
+            const width = Math.max(2, (group * 0.8) / slots);
+            const { min, span } = axisOf(item);
+            return (
+              <g key={`${item.label}-${si}`}>
+                <title>{item.label}</title>
+                {item.values.map((value, i) => {
+                  const minute = item.xMinutes?.[i];
+                  if (minute == null || value <= 0.01) return null;
+                  const center = xFromMinutes(minute);
+                  const x = center - group / 2 + slot * width + (group - slots * width) / 2;
+                  const y = scaleY(value, min, span, pad.t, innerH);
+                  const barH = pad.t + innerH - y;
+                  return (
+                    <rect
+                      key={i}
+                      x={x}
+                      y={y}
+                      width={width}
+                      height={Math.max(barH, 0)}
+                      rx="1.5"
+                      fill={item.color}
+                      opacity="0.82"
+                    />
+                  );
+                })}
+              </g>
+            );
+          }
           if (kind === "bars") {
             const maxBar = Math.min(14, innerW / Math.max(item.values.length, 1) - 1.5);
             return (
@@ -311,6 +378,64 @@ export function TimeChart({
                     />
                   );
                 })}
+              </g>
+            );
+          }
+
+          if (item.xMinutes) {
+            const axis = axisOf(item);
+            const located: { x: number; y: number; order: number }[] = [];
+            item.values.forEach((value, i) => {
+              const minute = item.xMinutes?.[i];
+              if (minute == null || !Number.isFinite(value)) return;
+              located.push({
+                x: xFromMinutes(minute),
+                y: scaleY(value, axis.min, axis.span, pad.t, innerH),
+                order: minute,
+              });
+            });
+            located.sort((a, b) => a.order - b.order);
+            const steps = located
+              .slice(1)
+              .map((point, i) => point.order - located[i].order)
+              .filter((gap) => gap > 0);
+            const maxGap = (steps.length ? Math.min(...steps) : 1) * 1.75;
+            const runs: { x: number; y: number }[][] = [];
+            for (let i = 0; i < located.length; i++) {
+              const point = located[i];
+              const prev = located[i - 1];
+              const run = runs[runs.length - 1];
+              if (!run || !prev || point.order - prev.order > maxGap) runs.push([point]);
+              else run.push(point);
+            }
+            const dashed = item.dashed ?? false;
+            return (
+              <g key={`${item.label}-${si}`}>
+                <title>{item.label}</title>
+                {runs.map((run, ri) =>
+                  run.length > 1 ? (
+                    <path
+                      key={ri}
+                      d={smoothLine(run)}
+                      fill="none"
+                      stroke={item.color}
+                      strokeWidth="2.3"
+                      strokeLinejoin="round"
+                      strokeLinecap="round"
+                      strokeDasharray={dashed ? "7 6" : undefined}
+                    />
+                  ) : (
+                    <circle key={ri} cx={run[0].x} cy={run[0].y} r="2.6" fill={item.color} />
+                  ),
+                )}
+                {runs.length > 0 && runs[runs.length - 1].length > 1 ? (
+                  <circle
+                    cx={runs[runs.length - 1][runs[runs.length - 1].length - 1].x}
+                    cy={runs[runs.length - 1][runs[runs.length - 1].length - 1].y}
+                    r="2.6"
+                    fill={item.color}
+                  />
+                ) : null}
               </g>
             );
           }
@@ -339,6 +464,20 @@ export function TimeChart({
             </g>
           );
         })}
+
+        {hourTicks.map((tick) => (
+          <text
+            key={tick.label}
+            x={tick.x}
+            y={h - 10}
+            textAnchor={tick.anchor}
+            fill="#5c5148"
+            fontSize="11"
+            style={{ fontFamily: "var(--font-sans-armenian), sans-serif" }}
+          >
+            {tick.label}
+          </text>
+        ))}
 
         {timeTicks.map((tick, i) => (
           <text
