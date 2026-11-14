@@ -41,7 +41,9 @@ export default async function HistoryPage({ searchParams }: HistoryPageProps) {
   if (selected && rawFrom > rawTo) redirect(`/history?from=${rawTo}&to=${rawFrom}`);
 
   const history = await api<HistoryResponse>(
-    selected ? `/readings/history?from=${rawFrom}&to=${rawTo}` : "/readings/history?from=1970-01-01&to=1970-01-01",
+    selected
+      ? `/readings/history?from=${rawFrom}&to=${rawTo}`
+      : "/readings/history?from=1970-01-01&to=1970-01-01",
   );
   if (!history) {
     return (
