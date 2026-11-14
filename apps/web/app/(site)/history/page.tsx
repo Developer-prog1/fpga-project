@@ -14,8 +14,6 @@ import {
   historyTickLabel,
   inclusiveDays,
   isDayKey,
-  isHistorySpan,
-  parseHistorySpan,
 } from "@/lib/history";
 import type { HistoryResponse } from "@/lib/types";
 
@@ -35,21 +33,16 @@ function one(value: string | string[] | undefined) {
 
 export default async function HistoryPage({ searchParams }: HistoryPageProps) {
   const query = await searchParams;
-  const rawSpan = one(query.span);
   const rawFrom = one(query.from);
   const rawTo = one(query.to);
+  const selected = isDayKey(rawFrom) && isDayKey(rawTo);
 
-  let request = "";
-  if (rawFrom || rawTo) {
-    if (!isDayKey(rawFrom) || !isDayKey(rawTo)) redirect("/history?span=7d");
-    if (rawFrom > rawTo) redirect(`/history?from=${rawTo}&to=${rawFrom}`);
-    request = `/readings/history?from=${rawFrom}&to=${rawTo}`;
-  } else {
-    if (rawSpan && !isHistorySpan(rawSpan)) redirect("/history?span=7d");
-    request = `/readings/history?span=${parseHistorySpan(rawSpan)}`;
-  }
+  if ((rawFrom || rawTo || query.span) && !selected) redirect("/history");
+  if (selected && rawFrom > rawTo) redirect(`/history?from=${rawTo}&to=${rawFrom}`);
 
-  const history = await api<HistoryResponse>(request);
+  const history = await api<HistoryResponse>(
+    selected ? `/readings/history?from=${rawFrom}&to=${rawTo}` : "/readings/history?from=1970-01-01&to=1970-01-01",
+  );
   if (!history) {
     return (
       <div className="mx-auto w-full max-w-6xl px-5 py-8 sm:px-8 lg:px-10">
@@ -58,8 +51,6 @@ export default async function HistoryPage({ searchParams }: HistoryPageProps) {
     );
   }
 
-  const days = inclusiveDays(history.dayFrom, history.dayTo);
-
   return (
     <div className="py-8 lg:py-10">
       <div className="space-y-12 px-6 sm:px-8 lg:px-12">
@@ -67,41 +58,52 @@ export default async function HistoryPage({ searchParams }: HistoryPageProps) {
           <p className="kicker text-gold">Դաշտային արխիվ</p>
           <h1 className="mt-3 font-serif text-4xl tracking-tight sm:text-5xl">Պատմություն</h1>
           <div className="gold-rule mt-4 w-24" />
-          <p className="mt-4 max-w-xl text-lg leading-relaxed text-ink-soft">
-            {historyRangeLabel(history.from, history.to)}. Թիվը փոփոխությունն է նախորդ նույն
-            երկարության համեմատ։
-          </p>
+          {selected ? (
+            <p className="mt-4 max-w-xl text-lg leading-relaxed text-ink-soft">
+              {historyRangeLabel(history.from, history.to)}. Թիվը փոփոխությունն է նախորդ նույն
+              երկարության համեմատ։
+            </p>
+          ) : null}
         </header>
 
         <HistoryFilter
-          span={history.span}
-          dayFrom={history.dayFrom}
-          dayTo={history.dayTo}
+          dayFrom={selected ? history.dayFrom : null}
+          dayTo={selected ? history.dayTo : null}
           archiveFrom={history.archiveFrom}
           archiveTo={history.archiveTo}
         />
 
-        <HistoryCompare
-          history={history}
-          previousLabel={historyPreviousLabel(history.span, history.dayFrom, history.dayTo)}
-        />
-
-        <section>
-          <SectionHeading
-            title={historySectionTitle(history.span, history.dayFrom, history.dayTo)}
-            note={historySectionNote(history.grain)}
-          />
-          {history.points.length === 0 ? (
-            <p className="text-ink-soft">Այս հատվածում չափում չկա։</p>
-          ) : (
-            <TrendCharts
-              rows={history.points}
-              labelFor={(iso) => historyTickLabel(iso, history.grain, days)}
-              shadeNight={history.shadeNight}
-            />
-          )}
-        </section>
+        {selected ? <HistoryResults history={history} /> : null}
       </div>
     </div>
+  );
+}
+
+function HistoryResults({ history }: { history: HistoryResponse }) {
+  const days = inclusiveDays(history.dayFrom, history.dayTo);
+
+  return (
+    <>
+      <HistoryCompare
+        history={history}
+        previousLabel={historyPreviousLabel(history.span, history.dayFrom, history.dayTo)}
+      />
+
+      <section>
+        <SectionHeading
+          title={historySectionTitle(history.span, history.dayFrom, history.dayTo)}
+          note={historySectionNote(history.grain)}
+        />
+        {history.points.length === 0 ? (
+          <p className="text-ink-soft">Այս հատվածում չափում չկա։</p>
+        ) : (
+          <TrendCharts
+            rows={history.points}
+            labelFor={(iso) => historyTickLabel(iso, history.grain, days)}
+            shadeNight={history.shadeNight}
+          />
+        )}
+      </section>
+    </>
   );
 }
