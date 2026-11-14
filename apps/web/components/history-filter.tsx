@@ -1,9 +1,8 @@
 "use client";
 
-import Link from "next/link";
 import { useEffect, useId, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { HISTORY_SPANS, isDayKey } from "@/lib/history";
+import { isDayKey } from "@/lib/history";
 import type { HistorySpan } from "@/lib/types";
 
 const WEEKDAYS = ["Երկ", "Երք", "Չրք", "Հնգ", "Ուրբ", "Շբթ", "Կիր"];
@@ -134,23 +133,6 @@ export function HistoryFilter({
 
   return (
     <div className="flex flex-wrap items-center gap-2">
-      <nav aria-label="Ժամանակահատված" className="flex flex-wrap gap-2">
-        {HISTORY_SPANS.map((item) => {
-          const active = item.id === span;
-          return (
-            <Link
-              key={item.id}
-              href={`/history?span=${item.id}`}
-              className={active ? "chip chip-active" : "chip"}
-              aria-current={active ? "page" : undefined}
-              onClick={() => setOpen(false)}
-            >
-              {item.label}
-            </Link>
-          );
-        })}
-      </nav>
-
       <div ref={rootRef} className="relative">
         <button
           type="button"
