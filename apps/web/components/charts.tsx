@@ -1,4 +1,4 @@
-import { formatMetric } from "@/lib/metrics";
+import { formatMetric, legendAmount } from "@/lib/metrics";
 
 type Pt = { x: number; y: number };
 
@@ -501,14 +501,15 @@ export function ChartLegend({ series }: { series: ChartSeries[] }) {
   return (
     <div className="mt-1 flex flex-wrap gap-x-5 gap-y-2 text-sm">
       {series.map((item) => {
-        const last = item.values[item.values.length - 1];
+        const amount = legendAmount(item.kind, item.values, item.digits ?? 1);
         return (
           <span key={item.label} className="inline-flex items-center gap-2 text-ink-soft">
             <span className="size-2.5 rounded-full" style={{ background: item.color }} />
             <span>{item.label}</span>
-            {last != null ? (
+            {amount ? (
               <span className="font-medium text-ink">
-                {formatMetric(last, item.digits ?? 1)}
+                {amount.prefix ? `${amount.prefix} ` : ""}
+                {amount.text}
                 {item.unit ? ` ${item.unit}` : ""}
               </span>
             ) : null}

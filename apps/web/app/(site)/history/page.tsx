@@ -8,6 +8,7 @@ import { SectionHeading } from "@/components/section-heading";
 import { TrendCharts } from "@/components/trend-charts";
 import { api } from "@/lib/api";
 import {
+  historyCompareNote,
   historyPreviousLabel,
   historyRangeLabel,
   historySectionNote,
@@ -103,9 +104,7 @@ function HistoryResults({ history }: { history: HistoryResponse }) {
         <SectionHeading
           title={historySectionTitle(history.span, history.dayFrom, history.dayTo)}
           note={
-            compareDays
-              ? "Ամեն գիծը մեկ օր է. ժամերը համընկնում են, որ երևա ո՛ր օրն ինչպես է անցել։ Մուգ շերտը գիշերն է։"
-              : historySectionNote(history.grain)
+            compareDays ? historyCompareNote(history.grain) : historySectionNote(history.grain)
           }
         />
         {history.points.length === 0 ? (

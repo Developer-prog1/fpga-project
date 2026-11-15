@@ -1,5 +1,7 @@
+import { narrativeCopy, type NarrativeCopy } from "./i18n/narrative";
+import type { Locale } from "./i18n/locale";
 import { groupByDay } from "./day-compare";
-import { METRICS, formatMetric, type MetricDef, type MetricKey } from "./metrics";
+import { formatMetric, metrics, type MetricDef, type MetricKey } from "./metrics";
 import type { HistoryGrain } from "./types";
 
 export type NarrativePoint = {
@@ -28,8 +30,6 @@ type LevelKey = Extract<MetricKey, keyof NarrativePoint>;
 type LevelSpec = {
   kind: "level";
   key: LevelKey;
-  subject: string;
-  genitive: string;
   unit: string;
   flat: number;
   mode: "curve" | "peak";
@@ -42,30 +42,14 @@ type Sample = { at: string; value: number };
 type PartBucket = "night" | "morning" | "midday" | "evening";
 
 const READINGS: Record<string, ReadingSpec[]> = {
-  temperature: [
-    level("airTemp", "Օդի ջերմաստիճանը", "Օդի ջերմաստիճանի", "°C", 1.5, "curve"),
-    level("soilTemp", "Հողի ջերմաստիճանը", "Հողի ջերմաստիճանի", "°C", 0.8, "curve"),
-  ],
-  humidity: [
-    level("airHumidity", "Օդի խոնավությունը", "Օդի խոնավության", "%", 8, "curve"),
-    level("soilMoisture", "Հողի խոնավությունը", "Հողի խոնավության", "%", 3, "curve"),
-  ],
-  wind: [level("windSpeed", "Քամին", "Քամու", "m/s", 1.5, "curve"), { kind: "rain" }],
-  light: [
-    level("lightLux", "Լուսավորությունը", "Լուսավորության", "lux", 500, "peak"),
-    level("uvIndex", "UV ինդեքսը", "UV ինդեքսի", "", 0.8, "peak"),
-  ],
+  temperature: [level("airTemp", "°C", 1.5, "curve"), level("soilTemp", "°C", 0.8, "curve")],
+  humidity: [level("airHumidity", "%", 8, "curve"), level("soilMoisture", "%", 3, "curve")],
+  wind: [level("windSpeed", "m/s", 1.5, "curve"), { kind: "rain" }],
+  light: [level("lightLux", "lux", 500, "peak"), level("uvIndex", "", 0.8, "peak")],
 };
 
-function level(
-  key: LevelKey,
-  subject: string,
-  genitive: string,
-  unit: string,
-  flat: number,
-  mode: LevelSpec["mode"],
-): LevelSpec {
-  return { kind: "level", key, subject, genitive, unit, flat, mode };
+function level(key: LevelKey, unit: string, flat: number, mode: LevelSpec["mode"]): LevelSpec {
+  return { kind: "level", key, unit, flat, mode };
 }
 
 /**

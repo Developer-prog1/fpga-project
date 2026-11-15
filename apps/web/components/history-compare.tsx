@@ -36,7 +36,7 @@ function CompareCard({ card, previousLabel }: { card: Card; previousLabel: strin
         : `${word} ${amount(card.current, card.digits, card.unit)} · ${previousLabel} ${amount(card.previous, card.digits, card.unit)}`;
   const range =
     card.mode === "avg" && card.min != null && card.max != null
-      ? `միջակայք ${formatMetric(card.min, card.digits)}–${formatMetric(card.max, card.digits)} ${card.unit}`
+      ? `չափումների միջակայք ${formatMetric(card.min, card.digits)}–${formatMetric(card.max, card.digits)} ${card.unit}`
       : null;
 
   return (

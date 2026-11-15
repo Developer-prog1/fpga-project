@@ -17,6 +17,7 @@ type MetricDetailProps = {
   labels: string[];
   times: string[];
   unitLabel: string;
+  chartNote?: string;
 };
 
 function DetailIntro({
@@ -27,7 +28,7 @@ function DetailIntro({
   extra,
   watch,
   stats,
-}: Omit<MetricDetailProps, "series" | "labels" | "times" | "unitLabel" | "label" | "about">) {
+}: Omit<MetricDetailProps, "series" | "labels" | "times" | "unitLabel" | "label" | "about" | "chartNote">) {
   return (
       <section className="panel mt-8 rounded-[32px] p-6 sm:p-8">
         <div className="flex flex-wrap items-end justify-between gap-4">
@@ -69,10 +70,12 @@ function DetailChart({
   labels,
   times,
   unitLabel,
-}: Pick<MetricDetailProps, "series" | "labels" | "times" | "unitLabel">) {
+  chartNote,
+}: Pick<MetricDetailProps, "series" | "labels" | "times" | "unitLabel" | "chartNote">) {
   return (
     <section className="panel mt-4 rounded-[32px] p-6 sm:p-8">
       <h2 className="font-serif text-2xl tracking-tight">24 ժամվա ընթացք</h2>
+      {chartNote ? <p className="mt-2 max-w-2xl text-sm text-ink-soft">{chartNote}</p> : null}
       <div className="gold-rule mt-3 w-16" />
       <ChartLegend series={series} />
       <div className="mt-4">
@@ -96,6 +99,7 @@ export function MetricDetail(props: MetricDetailProps) {
         labels={props.labels}
         times={props.times}
         unitLabel={props.unitLabel}
+        chartNote={props.chartNote}
       />
     </div>
   );

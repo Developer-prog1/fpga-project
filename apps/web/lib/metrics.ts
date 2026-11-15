@@ -1,3 +1,6 @@
+import type { WatchCode } from "./i18n/dictionary";
+import { dictionary } from "./i18n/messages";
+import { intlLocale, type Locale } from "./i18n/locale";
 import type { Reading } from "./types";
 
 export type MetricKey = Exclude<
@@ -17,56 +20,52 @@ export type MetricDef = {
   watch: (value: number) => string | null;
 };
 
-export const METRICS: MetricDef[] = [
+type MetricBase = {
+  key: MetricKey;
+  digits: number;
+  color: string;
+  group: MetricGroup;
+  watch: (value: number) => WatchCode | null;
+};
+
+const BASE: MetricBase[] = [
   {
     key: "airTemp",
-    label: "Օդի ջերմաստիճան",
-    unit: "°C",
     digits: 1,
     color: "#7a2433",
     group: "air",
-    watch: (v) => (v < 0 ? "ցրտահարություն" : v > 35 ? "շոգ" : null),
+    watch: (v) => (v < 0 ? "frost" : v > 35 ? "heat" : null),
   },
   {
     key: "airHumidity",
-    label: "Օդի խոնավություն",
-    unit: "%",
     digits: 0,
     color: "#3d5a80",
     group: "air",
-    watch: (v) => (v < 25 ? "չոր օդ" : v > 90 ? "շատ խոնավ" : null),
+    watch: (v) => (v < 25 ? "dryAir" : v > 90 ? "veryHumid" : null),
   },
   {
     key: "windSpeed",
-    label: "Քամու արագություն",
-    unit: "m/s",
     digits: 1,
     color: "#2e4a6e",
     group: "air",
-    watch: (v) => (v >= 10 ? "ուժեղ քամի" : null),
+    watch: (v) => (v >= 10 ? "strongWind" : null),
   },
   {
     key: "rainfallMm",
-    label: "Տեղումներ",
-    unit: "մմ",
     digits: 2,
     color: "#8a7340",
     group: "air",
-    watch: (v) => (v >= 3 ? "ուժեղ անձրև" : null),
+    watch: (v) => (v >= 3 ? "heavyRain" : null),
   },
   {
     key: "pressureHpa",
-    label: "Մթնոլորտային ճնշում",
-    unit: "hPa",
     digits: 1,
     color: "#5c5148",
     group: "air",
-    watch: (v) => (v < 1000 ? "ցածր ճնշում" : v > 1035 ? "բարձր ճնշում" : null),
+    watch: (v) => (v < 1000 ? "lowPressure" : v > 1035 ? "highPressure" : null),
   },
   {
     key: "dewPoint",
-    label: "Ցողի կետ",
-    unit: "°C",
     digits: 1,
     color: "#3a5f55",
     group: "air",
@@ -74,26 +73,20 @@ export const METRICS: MetricDef[] = [
   },
   {
     key: "soilMoisture",
-    label: "Հողի խոնավություն",
-    unit: "%",
     digits: 1,
     color: "#2a4538",
     group: "soil",
-    watch: (v) => (v < 22 ? "չոր հող" : v > 65 ? "ջրածածկ" : null),
+    watch: (v) => (v < 22 ? "drySoil" : v > 65 ? "waterlogged" : null),
   },
   {
     key: "soilTemp",
-    label: "Հողի ջերմաստիճան",
-    unit: "°C",
     digits: 1,
     color: "#6b4c2a",
     group: "soil",
-    watch: (v) => (v < 6 ? "սառը հող" : null),
+    watch: (v) => (v < 6 ? "coldSoil" : null),
   },
   {
     key: "lightLux",
-    label: "Լուսավորություն",
-    unit: "lux",
     digits: 0,
     color: "#c4a35a",
     group: "light",
@@ -101,32 +94,28 @@ export const METRICS: MetricDef[] = [
   },
   {
     key: "uvIndex",
-    label: "UV ինդեքս",
-    unit: "",
     digits: 1,
     color: "#9a3b28",
     group: "light",
-    watch: (v) => (v >= 8 ? "բարձր UV" : null),
+    watch: (v) => (v >= 8 ? "highUv" : null),
   },
 ];
 
-export const GROUPS: { id: MetricGroup; title: string; note: string }[] = [
-  { id: "air", title: "Մթնոլորտ", note: "օդ, քամի, տեղումներ և ճնշում" },
-  { id: "soil", title: "Հող", note: "խոնավություն և ջերմաստիճան արմատային շերտում" },
-  { id: "light", title: "Լույս", note: "ցերեկային լուսավորություն և ուլտրամանուշակագույն" },
-];
-
-const WIND = ["Հս", "ՀսԱ", "Ա", "ՀրԱ", "Հր", "ՀրԱմ", "Ամ", "ՀսԱմ"];
-const WIND_FULL = [
-  "հյուսիսից",
-  "հյուսիս-արևելքից",
-  "արևելքից",
-  "հարավ-արևելքից",
-  "հարավից",
-  "հարավ-արևմուտքից",
-  "արևմուտքից",
-  "հյուսիս-արևմուտքից",
-];
+export function metrics(locale: Locale = "am"): MetricDef[] {
+  const copy = dictionary(locale);
+  return BASE.map((metric) => ({
+    key: metric.key,
+    digits: metric.digits,
+    color: metric.color,
+    group: metric.group,
+    label: copy.metrics[metric.key].label,
+    unit: copy.metrics[metric.key].unit,
+    watch: (value: number) => {
+      const code = metric.watch(value);
+      return code ? copy.watch[code] : null;
+    },
+  }));
+}
 
 export function windDegNorm(deg: number) {
   const n = Math.round(((deg % 360) + 360) % 360);
@@ -137,17 +126,33 @@ export function windDirIndex(deg: number) {
   return Math.round(windDegNorm(deg) / 45) % 8;
 }
 
-export function windDirLabel(deg: number) {
-  return WIND[windDirIndex(deg)];
+export function windDirLabel(deg: number, locale: Locale = "am") {
+  return dictionary(locale).wind.short[windDirIndex(deg)];
 }
 
-export function windDirFull(deg: number) {
-  return WIND_FULL[windDirIndex(deg)];
+export function windDirFull(deg: number, locale: Locale = "am") {
+  return dictionary(locale).wind.full[windDirIndex(deg)];
 }
 
-export function formatMetric(value: number, digits: number) {
-  if (digits === 0) return Math.round(value).toLocaleString("hy-AM");
-  return value.toLocaleString("hy-AM", {
+export function legendAmount(
+  kind: "area" | "line" | "bars" | undefined,
+  values: number[],
+  digits: number,
+  locale: Locale = "am",
+) {
+  const finite = values.filter((value) => Number.isFinite(value));
+  if (finite.length === 0) return null;
+  if (kind === "bars") {
+    const sum = finite.reduce((total, value) => total + value, 0);
+    return { prefix: dictionary(locale).chartsUi.sum, text: formatMetric(sum, digits, locale) };
+  }
+  return { text: formatMetric(finite[finite.length - 1], digits, locale) };
+}
+
+export function formatMetric(value: number, digits: number, locale: Locale = "am") {
+  const tag = intlLocale(locale);
+  if (digits === 0) return Math.round(value).toLocaleString(tag);
+  return value.toLocaleString(tag, {
     minimumFractionDigits: digits,
     maximumFractionDigits: digits,
   });

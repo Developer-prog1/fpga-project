@@ -1,4 +1,5 @@
-const MONTHS_SHORT = ["հնվ", "փտր", "մրտ", "ապր", "մյս", "հնս", "հլս", "օգս", "սեպ", "հոկ", "նոյ", "դեկ"];
+import { dictionary } from "./i18n/messages";
+import type { Locale } from "./i18n/locale";
 
 export const DAY_LINE_COLORS = [
   "#7a2433",
@@ -25,9 +26,10 @@ export function minutesOfDay(iso: string) {
   return date.getHours() * 60 + date.getMinutes();
 }
 
-export function shortDayLabel(key: string) {
+export function shortDayLabel(key: string, locale: Locale = "am") {
   const [, month, day] = key.split("-").map(Number);
-  return `${day} ${MONTHS_SHORT[month - 1] ?? ""}`;
+  const name = dictionary(locale).calendar.monthsShort[month - 1] ?? "";
+  return `${day} ${name}`;
 }
 
 export type DayBucket<T> = {
@@ -37,7 +39,10 @@ export type DayBucket<T> = {
   rows: T[];
 };
 
-export function groupByDay<T extends { recordedAt: string }>(rows: T[]): DayBucket<T>[] {
+export function groupByDay<T extends { recordedAt: string }>(
+  rows: T[],
+  locale: Locale = "am",
+): DayBucket<T>[] {
   const groups = new Map<string, T[]>();
   for (const row of rows) {
     const key = dayKeyFromIso(row.recordedAt);
@@ -47,7 +52,7 @@ export function groupByDay<T extends { recordedAt: string }>(rows: T[]): DayBuck
   }
   return [...groups.keys()].sort().map((key, index) => ({
     key,
-    label: shortDayLabel(key),
+    label: shortDayLabel(key, locale),
     color: DAY_LINE_COLORS[index % DAY_LINE_COLORS.length],
     rows: groups.get(key) ?? [],
   }));

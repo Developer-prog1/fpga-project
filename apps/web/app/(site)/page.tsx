@@ -2,6 +2,7 @@ import Link from "next/link";
 import { api } from "@/lib/api";
 import type { Overview, Reading } from "@/lib/types";
 import { airPath } from "@/lib/air-detail";
+import { recentWindowSpan } from "@/lib/history";
 import { GROUPS, METRICS, downsample, formatMetric, seriesRange, windDegNorm, windDirLabel } from "@/lib/metrics";
 import { SectionHeading } from "@/components/section-heading";
 import { EmptyState } from "@/components/empty-state";
@@ -31,6 +32,7 @@ export default async function Home() {
   const latest = overview?.latest;
   const series = readings ?? [];
   const chart = pickReadings(series);
+  const coverage = recentWindowSpan(series);
 
   return (
     <div className="py-8 lg:py-10">
@@ -44,6 +46,7 @@ export default async function Home() {
             overview={overview}
             latest={latest}
             airTemps={downsample(series.map((row) => row.airTemp), 36)}
+            coverageLabel={coverage?.label}
           />
 
           {GROUPS.map((group) => (
@@ -85,7 +88,10 @@ export default async function Home() {
           <section>
             <SectionHeading
               title="24 ժամվա ընթացք"
-              note="Միավորները բաժանված են առանցքներով. մուգ շերտը գիշերն է։"
+              note={
+                coverage?.sentence ??
+                "Միավորները բաժանված են առանցքներով. մուգ շերտը գիշերն է։"
+              }
               action={
                 <Link href="/history" className="chip">
                   Պատմություն

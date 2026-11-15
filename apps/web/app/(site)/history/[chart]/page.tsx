@@ -6,7 +6,14 @@ import { HistoryNarrative } from "@/components/history-narrative";
 import { TrendChartDetail, trendChartById } from "@/components/trend-charts";
 import { api } from "@/lib/api";
 import { historyNarratives } from "@/lib/day-reading";
-import { historyRangeLabel, historySectionNote, historyTickLabel, inclusiveDays, isDayKey } from "@/lib/history";
+import {
+  grainMeanLabel,
+  historyRangeLabel,
+  historySectionNote,
+  historyTickLabel,
+  inclusiveDays,
+  isDayKey,
+} from "@/lib/history";
 import type { HistoryResponse } from "@/lib/types";
 
 type HistoryChartPageProps = {
@@ -58,7 +65,7 @@ export default async function HistoryChartPage({ params, searchParams }: History
       <h1 className="mt-3 font-serif text-4xl tracking-tight sm:text-5xl">{chart.title}</h1>
       <p className="mt-4 max-w-2xl text-lg leading-relaxed text-ink-soft">
         {compareDays
-          ? `${chart.compareNote}. Ժամերը համընկնում են, որ ամեն օրվա գիծը առանձին երևա։`
+          ? `${chart.compareNote}. Կետերը ${grainMeanLabel(history.grain)} են. ժամերը համընկնում են, որ ամեն օրվա գիծը առանձին երևա։`
           : historySectionNote(history.grain)}
       </p>
       <div className="gold-rule mt-4 w-24" />

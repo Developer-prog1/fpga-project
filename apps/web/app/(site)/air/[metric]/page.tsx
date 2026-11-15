@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { MetricDetail, type DetailStat } from "@/components/metric-detail";
 import { api } from "@/lib/api";
 import { airPageBySlug } from "@/lib/air-detail";
+import { recentWindowSpan } from "@/lib/history";
 import { formatMetric, seriesRange, windDegNorm, windDirFull, windDirLabel } from "@/lib/metrics";
 import type { Overview, Reading } from "@/lib/types";
 
@@ -77,6 +78,7 @@ export default async function AirMetricPage({ params }: AirRouteProps) {
       extra={extra}
       watch={metric.watch(latest[metric.key])}
       stats={statsFor(values, metric.digits, metric.unit)}
+      chartNote={recentWindowSpan(series)?.sentence}
       labels={series.map((row) => hourLabel(row.recordedAt))}
       times={series.map((row) => row.recordedAt)}
       unitLabel={metric.unit || metric.label}

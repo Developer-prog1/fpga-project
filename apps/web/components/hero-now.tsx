@@ -6,10 +6,12 @@ export function HeroNow({
   overview,
   latest,
   airTemps,
+  coverageLabel,
 }: {
   overview: Overview;
   latest: Reading;
   airTemps: number[];
+  coverageLabel?: string;
 }) {
   const when = new Intl.DateTimeFormat("hy-AM", {
     dateStyle: "medium",
@@ -53,7 +55,9 @@ export function HeroNow({
             ճնշում {formatMetric(latest.pressureHpa, 1)} hPa
           </p>
           <div className="mt-5">
-            <p className="mb-1 text-[11px] text-ink-soft">օդի ջերմաստիճան · վերջին 24 ժամ</p>
+            <p className="mb-1 text-[11px] text-ink-soft">
+              օդի ջերմաստիճան · {coverageLabel ?? "վերջին 24 ժամ"}
+            </p>
             <Ribbon values={airTemps} color="#7a2433" />
           </div>
         </div>
