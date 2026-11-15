@@ -134,6 +134,25 @@ export const en: Dictionary = {
         "When the air temperature nears the dew point, the air is moist and dew can form. A wide gap means dry air.",
     },
   },
+  field: {
+    soilMoisture: {
+      about: "Soil moisture shows how much water is held in the root zone.",
+      reading: "The line is the last 24 hours. Below 22% the soil is dry, and above 65% it is waterlogged.",
+    },
+    soilTemp: {
+      about: "Soil temperature is measured in the root zone and shows how warm or cold the ground is.",
+      reading:
+        "The line is the last 24 hours. A low temperature slows the roots. Below 6 °C the soil is cold.",
+    },
+    lightLux: {
+      about: "Illuminance, in lux, shows how much daylight is falling on the field.",
+      reading: "The line is the last 24 hours. It rises through the day and falls close to zero at night.",
+    },
+    uvIndex: {
+      about: "The ultraviolet index shows how strong the sun’s ultraviolet radiation is.",
+      reading: "The line is the last 24 hours. Zero is night or very weak radiation. 8 and above is a high index.",
+    },
+  },
   charts: {
     temperature: {
       title: "Temperature",

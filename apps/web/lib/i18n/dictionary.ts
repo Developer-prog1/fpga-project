@@ -30,6 +30,8 @@ export type ChartId = "temperature" | "humidity" | "wind" | "light";
 
 export type AirSlug = "temperature" | "humidity" | "wind" | "rain" | "pressure" | "dew-point";
 
+export type FieldKey = "soilMoisture" | "soilTemp" | "lightLux" | "uvIndex";
+
 export type MetricGroupId = "air" | "soil" | "light";
 
 type MonthNames = [string, string, string, string, string, string, string, string, string, string, string, string];
@@ -82,6 +84,7 @@ export type Dictionary = {
     max: string;
   };
   air: Record<AirSlug, { about: string; reading: string }>;
+  field: Record<FieldKey, { about: string; reading: string }>;
   charts: Record<ChartId, { title: string; note: string; compareNote: string; labels: [string, string] }>;
   chartsUi: {
     wind: string;

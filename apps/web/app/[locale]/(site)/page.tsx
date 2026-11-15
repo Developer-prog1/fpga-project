@@ -1,6 +1,7 @@
 import { api } from "@/lib/api";
 import type { Overview, Reading } from "@/lib/types";
 import { airPath } from "@/lib/air-detail";
+import { dayKeyFromIso } from "@/lib/day-compare";
 import { recentWindowSpan } from "@/lib/history";
 import { intlLocale, localizeHref } from "@/lib/i18n/locale";
 import { getI18n } from "@/lib/i18n/server";
@@ -15,6 +16,16 @@ function pickReadings(rows: Reading[], size = 48) {
   if (rows.length <= size) return rows;
   const step = (rows.length - 1) / (size - 1);
   return Array.from({ length: size }, (_, i) => rows[Math.round(i * step)]);
+}
+
+function chartHref(rows: Reading[], locale: Parameters<typeof intlLocale>[0]) {
+  const first = rows[0]?.recordedAt;
+  const last = rows[rows.length - 1]?.recordedAt;
+  if (!first || !last) return undefined;
+  const from = dayKeyFromIso(first);
+  const to = dayKeyFromIso(last);
+  const [start, end] = from <= to ? [from, to] : [to, from];
+  return (chartId: string) => localizeHref(locale, `/history/${chartId}?from=${start}&to=${end}`);
 }
 
 function hourLabel(iso: string, locale: Parameters<typeof intlLocale>[0]) {
@@ -91,7 +102,11 @@ export default async function Home() {
 
           <section>
             <SectionHeading title={t.homeTrend.title} note={coverage?.sentence ?? t.homeTrend.note} />
-            <TrendCharts rows={chart} labelFor={(iso) => hourLabel(iso, locale)} />
+            <TrendCharts
+              rows={chart}
+              labelFor={(iso) => hourLabel(iso, locale)}
+              hrefFor={chartHref(series, locale)}
+            />
           </section>
         </div>
       )}
