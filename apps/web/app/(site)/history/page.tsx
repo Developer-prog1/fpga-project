@@ -107,22 +107,24 @@ function HistoryResults({
     <>
       <HistoryCompare
         history={history}
-        previousLabel={historyPreviousLabel(history.span, history.dayFrom, history.dayTo)}
+        previousLabel={historyPreviousLabel(history.span, history.dayFrom, history.dayTo, locale)}
       />
 
       <section>
         <SectionHeading
-          title={historySectionTitle(history.span, history.dayFrom, history.dayTo)}
+          title={historySectionTitle(history.span, history.dayFrom, history.dayTo, locale)}
           note={
-            compareDays ? historyCompareNote(history.grain) : historySectionNote(history.grain)
+            compareDays
+              ? historyCompareNote(history.grain, locale)
+              : historySectionNote(history.grain, locale)
           }
         />
         {history.points.length === 0 ? (
-          <p className="text-ink-soft">Այս հատվածում չափում չկա։</p>
+          <EmptyRange />
         ) : (
           <TrendCharts
             rows={history.points}
-            labelFor={(iso) => historyTickLabel(iso, history.grain, days)}
+            labelFor={(iso) => historyTickLabel(iso, history.grain, days, locale)}
             shadeNight={history.shadeNight}
             compareDays={compareDays}
             hrefFor={(chartId) => `/history/${chartId}?from=${history.dayFrom}&to=${history.dayTo}`}
