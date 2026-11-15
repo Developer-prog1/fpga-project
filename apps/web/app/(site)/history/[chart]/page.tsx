@@ -7,6 +7,7 @@ import { TrendChartDetail, trendChartById } from "@/components/trend-charts";
 import { api } from "@/lib/api";
 import { historyNarratives } from "@/lib/day-reading";
 import {
+  grainMeanLabel,
   historyRangeLabel,
   historySectionNote,
   historyTickLabel,
@@ -56,19 +57,18 @@ export default async function HistoryChartPage({ params, searchParams }: History
     );
   }
 
-  const { locale, t } = await getI18n();
   const days = inclusiveDays(history.dayFrom, history.dayTo);
   const compareDays = days > 1 && history.grain !== "1d";
   const backHref = `/history?from=${history.dayFrom}&to=${history.dayTo}`;
 
   return (
     <div className="px-6 py-8 sm:px-8 lg:px-12 lg:py-10">
-      <BackLink href={backHref} label="Պատմություն" />
-      <p className="kicker mt-8 text-gold">{historyRangeLabel(history.from, history.to)}</p>
+      <BackLink href={backHref} label={t.history.title} />
+      <p className="kicker mt-8 text-gold">{historyRangeLabel(history.from, history.to, locale)}</p>
       <h1 className="mt-3 font-serif text-4xl tracking-tight sm:text-5xl">{chart.title}</h1>
       <p className="mt-4 max-w-2xl text-lg leading-relaxed text-ink-soft">
         {compareDays
-          ? `${chart.compareNote}. ${t.history.detailPoints(grainMeanLabel(history.grain, locale))}`
+          ? `${chart.compareNote}. ${t.history.detailPoints(t.history.grainMean[history.grain])}`
           : historySectionNote(history.grain, locale)}
       </p>
       <div className="gold-rule mt-4 w-24" />

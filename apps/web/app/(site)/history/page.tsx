@@ -1,4 +1,3 @@
-import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { EmptyState } from "@/components/empty-state";
 import { HistoryAwait } from "@/components/history-await";
@@ -7,7 +6,6 @@ import { HistoryFilter } from "@/components/history-filter";
 import { SectionHeading } from "@/components/section-heading";
 import { TrendCharts } from "@/components/trend-charts";
 import { api } from "@/lib/api";
-import { getI18n } from "@/lib/i18n/server";
 import {
   historyCompareNote,
   historyPreviousLabel,

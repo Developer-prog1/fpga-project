@@ -4,23 +4,38 @@ import { MetricDetail, type DetailStat } from "@/components/metric-detail";
 import { api } from "@/lib/api";
 import { airPageBySlug } from "@/lib/air-detail";
 import { recentWindowSpan } from "@/lib/history";
+import type { Dictionary } from "@/lib/i18n/dictionary";
+import { intlLocale, type Locale } from "@/lib/i18n/locale";
 import { getI18n } from "@/lib/i18n/server";
 import { formatMetric, seriesRange, windDegNorm, windDirFull, windDirLabel } from "@/lib/metrics";
 import type { Overview, Reading } from "@/lib/types";
 
 type AirRouteProps = { params: Promise<{ metric: string }> };
 
-function hourLabel(iso: string) {
-  return new Intl.DateTimeFormat("hy-AM", { hour: "2-digit", minute: "2-digit" }).format(new Date(iso));
+function hourLabel(iso: string, locale: Locale) {
+  return new Intl.DateTimeFormat(intlLocale(locale), { hour: "2-digit", minute: "2-digit" }).format(
+    new Date(iso),
+  );
 }
 
-function extraNote(key: string, latest: Reading, values: number[], sum: number | null | undefined) {
+function extraNote(
+  key: string,
+  latest: Reading,
+  values: number[],
+  sum: number | null | undefined,
+  locale: Locale,
+  t: Dictionary,
+) {
   if (key === "windSpeed") {
-    return `գալիս է ${windDirFull(latest.windDirDeg)} · ${windDirLabel(latest.windDirDeg)} ${windDegNorm(latest.windDirDeg)}°`;
+    return t.hero.comingFrom(
+      windDirFull(latest.windDirDeg, locale),
+      windDirLabel(latest.windDirDeg, locale),
+      windDegNorm(latest.windDirDeg),
+    );
   }
   if (key === "rainfallMm") {
     const total = sum ?? values.reduce((acc, n) => acc + n, 0);
-    return `24 ժամում գումար ${formatMetric(total, 1)} մմ`;
+    return t.hints.rainSum(formatMetric(total, 1, locale));
   }
   return undefined;
 }
@@ -59,7 +74,6 @@ export default async function AirMetricPage({ params }: AirRouteProps) {
   const { locale, t } = await getI18n();
   const page = airPageBySlug((await params).metric, locale);
   if (!page) notFound();
-  const { locale } = await getI18n();
 
   const [overview, readings] = await Promise.all([
     api<Overview>("/overview"),
@@ -82,14 +96,14 @@ export default async function AirMetricPage({ params }: AirRouteProps) {
       label={metric.label}
       about={page.about}
       reading={page.reading}
-      value={formatMetric(latest[metric.key], metric.digits)}
+      value={formatMetric(latest[metric.key], metric.digits, locale)}
       unit={metric.unit}
       when={when}
       extra={extra}
       watch={metric.watch(latest[metric.key])}
-      stats={statsFor(values, metric.digits, metric.unit)}
+      stats={statsFor(values, metric.digits, metric.unit, locale, t)}
       chartNote={recentWindowSpan(series, Date.now(), 24, locale)?.sentence}
-      labels={series.map((row) => hourLabel(row.recordedAt))}
+      labels={series.map((row) => hourLabel(row.recordedAt, locale))}
       times={series.map((row) => row.recordedAt)}
       unitLabel={metric.unit || metric.label}
       series={[
