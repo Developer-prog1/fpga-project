@@ -1,6 +1,10 @@
 import { ChartLegend, TimeChart, chartDomain, type ChartSeries } from "@/components/charts";
 import { ChartFrame } from "@/components/section-heading";
 import { groupByDay, minutesOfDay, type DayBucket } from "@/lib/day-compare";
+import type { ChartId } from "@/lib/i18n/dictionary";
+import { dictionary } from "@/lib/i18n/messages";
+import type { Locale } from "@/lib/i18n/locale";
+import { getI18n } from "@/lib/i18n/server";
 
 export type TrendRow = {
   recordedAt: string;
@@ -110,8 +114,25 @@ function daySeries(day: DayBucket<TrendRow>, metric: MetricSpec): ChartSeries {
   };
 }
 
-export function trendChartById(id: string) {
-  return CHARTS.find((chart) => chart.id === id) ?? null;
+function localize(chart: TrendChartDef, locale: Locale): TrendChartDef {
+  const copy = dictionary(locale);
+  const text = copy.charts[chart.id as ChartId];
+  return {
+    ...chart,
+    title: text.title,
+    note: text.note,
+    compareNote: text.compareNote,
+    metrics: chart.metrics.map((metric, index) => ({
+      ...metric,
+      label: text.labels[index] ?? metric.label,
+      unit: copy.metrics[metric.key].unit,
+    })),
+  };
+}
+
+export function trendChartById(id: string, locale: Locale = "am") {
+  const chart = CHARTS.find((item) => item.id === id);
+  return chart ? localize(chart, locale) : null;
 }
 
 function DayLegend({ days, className }: { days: DayBucket<TrendRow>[]; className?: string }) {
@@ -131,14 +152,16 @@ function DayOverlay({
   rows,
   metrics,
   shareScale,
+  locale,
   large = false,
 }: {
   rows: TrendRow[];
   metrics: MetricSpec[];
   shareScale: boolean;
+  locale: Locale;
   large?: boolean;
 }) {
-  const days = groupByDay(rows);
+  const days = groupByDay(rows, locale);
   const domain = shareScale
     ? chartDomain(days.flatMap((day) => day.rows.flatMap((row) => metrics.map((metric) => row[metric.key]))))
     : undefined;
@@ -187,7 +210,7 @@ function DayOverlay({
   );
 }
 
-export function TrendChartDetail({
+export async function TrendChartDetail({
   chart,
   rows,
   labelFor,
@@ -200,21 +223,25 @@ export function TrendChartDetail({
   shadeNight?: boolean;
   compareDays?: boolean;
 }) {
+  const { locale } = await getI18n();
+  const view = localize(chart, locale);
   if (compareDays) {
-    return <DayOverlay rows={rows} metrics={chart.metrics} shareScale={chart.shareScale} large />;
+    return (
+      <DayOverlay rows={rows} metrics={view.metrics} shareScale={view.shareScale} locale={locale} large />
+    );
   }
 
-  const series = chart.metrics.map((metric) => timelineSeries(rows, metric));
-  const right = chart.metrics.find((metric) => metric.axis === "right");
+  const series = view.metrics.map((metric) => timelineSeries(rows, metric));
+  const right = view.metrics.find((metric) => metric.axis === "right");
   return (
     <>
-      <ChartLegend series={series} />
+      <ChartLegend series={series} locale={locale} />
       <div className="mt-4">
         <TimeChart
           labels={rows.map((row) => labelFor(row.recordedAt))}
           times={rows.map((row) => row.recordedAt)}
           series={series}
-          unitLeft={chart.metrics[0]?.unit}
+          unitLeft={view.metrics[0]?.unit}
           unitRight={right ? right.unit || right.label : undefined}
           shadeNight={shadeNight}
           height={460}
@@ -224,7 +251,7 @@ export function TrendChartDetail({
   );
 }
 
-export function TrendCharts({
+export async function TrendCharts({
   rows,
   labelFor,
   shadeNight = true,
@@ -237,12 +264,14 @@ export function TrendCharts({
   compareDays?: boolean;
   hrefFor?: (chartId: string) => string;
 }) {
+  const { locale } = await getI18n();
   const labels = rows.map((row) => labelFor(row.recordedAt));
   const times = rows.map((row) => row.recordedAt);
 
   return (
     <div className="grid gap-4 lg:grid-cols-2">
-      {CHARTS.map((chart) => {
+      {CHARTS.map((source) => {
+        const chart = localize(source, locale);
         const series = chart.metrics.map((metric) => timelineSeries(rows, metric));
         const right = chart.metrics.find((metric) => metric.axis === "right");
         return (
@@ -253,10 +282,10 @@ export function TrendCharts({
             href={hrefFor?.(chart.id)}
           >
             {compareDays ? (
-              <DayOverlay rows={rows} metrics={chart.metrics} shareScale={chart.shareScale} />
+              <DayOverlay rows={rows} metrics={chart.metrics} shareScale={chart.shareScale} locale={locale} />
             ) : (
               <>
-                <ChartLegend series={series} />
+                <ChartLegend series={series} locale={locale} />
                 <div className="mt-3">
                   <TimeChart
                     labels={labels}
