@@ -16,8 +16,8 @@
 }
 
 @theme inline {
-  --font-sans: var(--font-sans-armenian), "Noto Sans Armenian", ui-sans-serif, system-ui, sans-serif;
-  --font-serif: var(--font-serif-armenian), "Noto Serif Armenian", ui-serif, Georgia, serif;
+  --font-sans: var(--font-sans-latin), var(--font-sans-armenian), ui-sans-serif, system-ui, sans-serif;
+  --font-serif: var(--font-serif-latin), var(--font-serif-armenian), ui-serif, Georgia, serif;
   --color-ink: var(--ink);
   --color-ink-soft: var(--ink-soft);
   --color-parchment: var(--parchment);
@@ -243,6 +243,32 @@ body {
   z-index: 40;
   border-bottom: 1px solid rgba(196, 163, 90, 0.35);
   background: var(--cream);
+}
+
+.lang-switch {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.1rem;
+  padding: 0.15rem;
+  border-radius: 999px;
+  border: 1px solid rgba(196, 163, 90, 0.55);
+  background: rgba(255, 250, 242, 0.9);
+}
+
+.lang-switch button {
+  min-width: 2.35rem;
+  border-radius: 999px;
+  padding: 0.28rem 0.45rem;
+  font-size: 0.68rem;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  color: var(--ink-soft);
+  cursor: pointer;
+}
+
+.lang-switch button[aria-pressed="true"] {
+  background: var(--ink);
+  color: var(--cream);
 }
 
 .field {

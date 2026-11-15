@@ -88,14 +88,16 @@ export function seriesShape(values: number[], flat: boolean): SeriesShape {
 export function historyNarratives(
   chartId: string,
   rows: readonly NarrativePoint[],
-  options: { grain: HistoryGrain; compareDays: boolean },
+  options: { grain: HistoryGrain; compareDays: boolean; locale?: Locale },
 ): DayReading[] {
   const specs = READINGS[chartId];
   if (!specs || rows.length === 0) return [];
 
+  const locale = options.locale ?? "am";
+  const copy = narrativeCopy(locale);
   const clock = options.grain !== "1d";
   const groups = options.compareDays
-    ? groupByDay([...rows])
+    ? groupByDay([...rows], locale)
     : [{ key: "range", label: "", color: "", rows: [...rows] }];
 
   return groups
@@ -106,16 +108,22 @@ export function historyNarratives(
       paragraphs: specs
         .map((spec) =>
           spec.kind === "rain"
-            ? rainParagraph(group.rows, options.grain)
-            : levelParagraph(spec, group.rows, clock),
+            ? rainParagraph(group.rows, options.grain, locale, copy)
+            : levelParagraph(spec, group.rows, clock, locale, copy),
         )
         .filter((paragraph): paragraph is string => Boolean(paragraph)),
     }))
     .filter((reading) => reading.paragraphs.length > 0);
 }
 
-function levelParagraph(spec: LevelSpec, rows: readonly NarrativePoint[], clock: boolean) {
-  const metric = METRICS.find((item) => item.key === spec.key);
+function levelParagraph(
+  spec: LevelSpec,
+  rows: readonly NarrativePoint[],
+  clock: boolean,
+  locale: Locale,
+  copy: NarrativeCopy,
+) {
+  const metric = metrics(locale).find((item) => item.key === spec.key);
   const samples = finiteSamples(rows, spec.key);
   if (!metric || samples.length === 0) return null;
 
@@ -125,23 +133,14 @@ function levelParagraph(spec: LevelSpec, rows: readonly NarrativePoint[], clock:
   const shape = seriesShape(values, flat);
   const minDigits = claimDigits(ends.min, metric.digits, metric.watch);
   const maxDigits = claimDigits(ends.max, metric.digits, metric.watch);
-  const minText = withUnit(formatMetric(ends.min, minDigits), spec.unit);
-  const maxText = withUnit(formatMetric(ends.max, maxDigits), spec.unit);
-  const span = quantitySpan(ends.min, ends.max, minDigits, maxDigits, spec.unit);
-  const during = clock ? "օրվա ընթացքում" : "այս օրերի ընթացքում";
+  const minText = withUnit(formatMetric(ends.min, minDigits, locale), spec.unit);
+  const maxText = withUnit(formatMetric(ends.max, maxDigits, locale), spec.unit);
+  const span = quantitySpan(ends.min, ends.max, minDigits, maxDigits, spec.unit, locale);
+  const during = copy.during(clock);
 
-  const main = mainSentence({
-    spec,
-    shape,
-    clock,
-    ends,
-    minText,
-    maxText,
-    span,
-    during,
-  });
+  const main = mainSentence({ spec, shape, clock, ends, minText, maxText, span, during, copy });
 
-  return [main, ...thresholdSentences(metric, ends.min, ends.max, minText, maxText, span)].join(" ");
+  return [main, ...thresholdSentences(copy, metric, ends.min, ends.max, minText, maxText, span)].join(" ");
 }
 
 function mainSentence(input: {
@@ -153,47 +152,53 @@ function mainSentence(input: {
   maxText: string;
   span: string;
   during: string;
+  copy: NarrativeCopy;
 }) {
-  const { spec, shape, clock, ends, minText, maxText, span, during } = input;
-  if (minText === maxText) return `${spec.subject} մնաց ${minText}։`;
+  const { spec, shape, clock, ends, minText, maxText, span, during, copy } = input;
+  const when = (iso: string, next: "vowel" | "consonant") => copy.dayPart(partBucket(iso), next);
+  if (minText === maxText) return copy.stayed(spec.key, minText);
 
   if (spec.mode === "peak" && shape !== "flat") {
-    if (!clock) return `${spec.genitive} առավելագույնը ${maxText} էր։`;
-    const when = dayPart(ends.maxAt, "vowel");
-    return `${spec.genitive} գագաթնակետը ${when} էր՝ ${maxText}։`;
+    if (!clock) return copy.peakSpan(spec.key, maxText);
+    return copy.peakClock(spec.key, when(ends.maxAt, "vowel"), maxText);
   }
 
-  if (shape === "flat") return `${spec.subject} գրեթե չփոխվեց։ Մնաց ${span} միջակայքում։`;
-  if (shape === "mixed") return `${spec.subject} ${during} ${span} միջակայքում էր։`;
+  if (shape === "flat") return copy.flat(spec.key, span);
+  if (shape === "mixed") return copy.mixed(spec.key, during, span);
 
   if (shape === "fell-then-rose") {
-    const opening = clock ? `${dayPart(ends.minAt, "vowel")} իջավ` : "նախ իջավ";
-    return `${spec.subject} ${opening} մինչև ${minText}, հետո նորից բարձրացավ։ Միջակայքը ${span} էր։`;
+    return copy.fellThenRose(spec.key, clock ? when(ends.minAt, "vowel") : null, minText, span);
   }
 
   if (shape === "rose-then-fell") {
-    const opening = clock ? `${dayPart(ends.maxAt, "consonant")} հասավ` : "նախ բարձրացավ";
-    return `${spec.subject} ${opening} մինչև ${maxText}, հետո իջավ։ Միջակայքը ${span} էր։`;
+    return copy.roseThenFell(spec.key, clock ? when(ends.maxAt, "consonant") : null, maxText, span);
   }
 
   if (shape === "fell") {
     const timed =
       clock && ends.maxIndex < ends.minIndex && partBucket(ends.maxAt) !== partBucket(ends.minAt);
     if (timed) {
-      return `${spec.subject} ${dayPart(ends.maxAt, "consonant")} ${maxText} էր, ${dayPart(ends.minAt, "vowel")} իջավ մինչև ${minText}։`;
+      return copy.fellTimed(spec.key, when(ends.maxAt, "consonant"), maxText, when(ends.minAt, "vowel"), minText);
     }
-    return `${spec.subject} ${during} իջավ։ Նվազագույնը ${minText} էր, առավելագույնը՝ ${maxText}։`;
+    return copy.fell(spec.key, during, minText, maxText);
   }
 
   const timed =
     clock && ends.minIndex < ends.maxIndex && partBucket(ends.minAt) !== partBucket(ends.maxAt);
   if (timed) {
-    return `${spec.subject} ${dayPart(ends.minAt, "consonant")} ${minText} էր, ${dayPart(ends.maxAt, "consonant")} բարձրացավ մինչև ${maxText}։`;
+    return copy.roseTimed(
+      spec.key,
+      when(ends.minAt, "consonant"),
+      minText,
+      when(ends.maxAt, "consonant"),
+      maxText,
+    );
   }
-  return `${spec.subject} ${during} բարձրացավ։ Նվազագույնը ${minText} էր, առավելագույնը՝ ${maxText}։`;
+  return copy.rose(spec.key, during, minText, maxText);
 }
 
 function thresholdSentences(
+  copy: NarrativeCopy,
   metric: MetricDef,
   min: number,
   max: number,
@@ -203,31 +208,31 @@ function thresholdSentences(
 ) {
   const low = metric.watch(min);
   const high = metric.watch(max);
-  if (low && low === high) return [`Ամբողջ հատվածը ${low} է (${span})։`];
+  if (low && low === high) return [copy.whole(low, span)];
   const lines: string[] = [];
-  if (low) lines.push(`Նվազագույնը ${low} է (${minText})։`);
-  if (high) lines.push(`Առավելագույնը ${high} է (${maxText})։`);
+  if (low) lines.push(copy.lowIs(low, minText));
+  if (high) lines.push(copy.highIs(high, maxText));
   return lines;
 }
 
-function rainParagraph(rows: readonly NarrativePoint[], grain: HistoryGrain) {
-  const metric = METRICS.find((item) => item.key === "rainfallMm");
+function rainParagraph(
+  rows: readonly NarrativePoint[],
+  grain: HistoryGrain,
+  locale: Locale,
+  copy: NarrativeCopy,
+) {
+  const metric = metrics(locale).find((item) => item.key === "rainfallMm");
   const samples = finiteSamples(rows, "rainfallMm");
   if (!metric || samples.length === 0) return null;
 
   const total = samples.reduce((sum, sample) => sum + sample.value, 0);
   const peak = Math.max(...samples.map((sample) => sample.value));
-  if (roundTo(total, 2) <= 0 && roundTo(peak, 2) <= 0) return "Տեղում չի եղել։";
+  if (roundTo(total, 2) <= 0 && roundTo(peak, 2) <= 0) return copy.noRain;
 
   const peakDigits = claimDigits(peak, metric.digits, metric.watch);
-  const totalText = withUnit(formatMetric(total, metric.digits), "մմ");
-  const peakText = withUnit(formatMetric(peak, peakDigits), "մմ");
-  const where = grain === "1d" ? "մեկ օրում" : "մեկ միջակայքում";
-  const heavy = metric.watch(peak);
-  const peakSentence = heavy
-    ? `Ամենաշատը ${where} ${peakText} էր։ Դա ${heavy} է։`
-    : `Ամենաշատը ${where} ${peakText} էր։`;
-  return `Տեղումների գումարը ${totalText} է։ ${peakSentence}`;
+  const totalText = withUnit(formatMetric(total, metric.digits, locale), copy.rainUnit);
+  const peakText = withUnit(formatMetric(peak, peakDigits, locale), copy.rainUnit);
+  return copy.rain(totalText, copy.rainWhere(grain === "1d"), peakText, metric.watch(peak));
 }
 
 function isFlat(spec: LevelSpec, values: number[]) {
@@ -294,9 +299,16 @@ function withUnit(text: string, unit: string) {
   return `${text} ${unit}`;
 }
 
-function quantitySpan(min: number, max: number, minDigits: number, maxDigits: number, unit: string) {
-  const lo = formatMetric(min, minDigits);
-  const hi = formatMetric(max, maxDigits);
+function quantitySpan(
+  min: number,
+  max: number,
+  minDigits: number,
+  maxDigits: number,
+  unit: string,
+  locale: Locale,
+) {
+  const lo = formatMetric(min, minDigits, locale);
+  const hi = formatMetric(max, maxDigits, locale);
   if (lo === hi) return withUnit(lo, unit);
   if (!unit) return `${lo}–${hi}`;
   if (unit === "%") return `${lo}–${hi}%`;
@@ -309,12 +321,4 @@ function partBucket(iso: string): PartBucket {
   if (hour < 11) return "morning";
   if (hour < 16) return "midday";
   return "evening";
-}
-
-function dayPart(iso: string, next: "vowel" | "consonant") {
-  const bucket = partBucket(iso);
-  if (bucket === "night") return next === "vowel" ? "գիշերն" : "գիշերը";
-  if (bucket === "morning") return "առավոտյան";
-  if (bucket === "midday") return "կեսօրին";
-  return "երեկոյան";
 }

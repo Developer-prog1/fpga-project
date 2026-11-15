@@ -2,26 +2,27 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-
-const LINKS = [
-  {
-    href: "/",
-    label: "Այժմ",
-    match: (path: string) => path === "/" || path.startsWith("/air"),
-  },
-  {
-    href: "/history",
-    label: "Պատմություն",
-    match: (path: string) => path.startsWith("/history"),
-  },
-];
+import { useI18n } from "@/components/i18n-provider";
 
 export function SiteNav() {
   const pathname = usePathname();
+  const { t } = useI18n();
+  const links = [
+    {
+      href: "/",
+      label: t.nav.now,
+      match: (path: string) => path === "/" || path.startsWith("/air"),
+    },
+    {
+      href: "/history",
+      label: t.nav.history,
+      match: (path: string) => path.startsWith("/history"),
+    },
+  ];
 
   return (
-    <nav aria-label="Բաժիններ" className="flex items-center gap-2">
-      {LINKS.map((link) => {
+    <nav aria-label={t.nav.aria} className="flex items-center gap-2">
+      {links.map((link) => {
         const active = link.match(pathname);
         return (
           <Link
