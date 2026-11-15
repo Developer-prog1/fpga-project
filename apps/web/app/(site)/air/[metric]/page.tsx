@@ -71,8 +71,8 @@ export default async function AirMetricPage({ params }: AirRouteProps) {
 
   const { metric } = page;
   const values = series.map((row) => row[metric.key]);
-  const extra = extraNote(metric.key, latest, values, overview?.summary?.rainfallMm.sum);
-  const when = new Intl.DateTimeFormat("hy-AM", {
+  const extra = extraNote(metric.key, latest, values, overview?.summary?.rainfallMm.sum, locale, t);
+  const when = new Intl.DateTimeFormat(intlLocale(locale), {
     dateStyle: "medium",
     timeStyle: "short",
   }).format(new Date(latest.recordedAt));
