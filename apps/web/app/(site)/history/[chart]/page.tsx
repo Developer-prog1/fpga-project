@@ -2,8 +2,10 @@ import type { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
 import { BackLink } from "@/components/back-link";
 import { EmptyState } from "@/components/empty-state";
+import { HistoryNarrative } from "@/components/history-narrative";
 import { TrendChartDetail, trendChartById } from "@/components/trend-charts";
 import { api } from "@/lib/api";
+import { historyNarratives } from "@/lib/day-reading";
 import { historyRangeLabel, historySectionNote, historyTickLabel, inclusiveDays, isDayKey } from "@/lib/history";
 import type { HistoryResponse } from "@/lib/types";
 
@@ -70,6 +72,15 @@ export default async function HistoryChartPage({ params, searchParams }: History
             labelFor={(iso) => historyTickLabel(iso, history.grain, days)}
             shadeNight={history.shadeNight}
             compareDays={compareDays}
+          />
+          <HistoryNarrative
+            title={
+              compareDays ? "Օրերի վիճակը" : days > 1 ? "Ընտրված օրերի վիճակը" : "Օրվա վիճակը"
+            }
+            readings={historyNarratives(chart.id, history.points, {
+              grain: history.grain,
+              compareDays,
+            })}
           />
         </div>
       )}

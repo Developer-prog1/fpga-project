@@ -1,4 +1,4 @@
-import type { Reading } from "@/lib/types";
+import type { Reading } from "./types";
 
 export type MetricKey = Exclude<
   keyof Reading,
