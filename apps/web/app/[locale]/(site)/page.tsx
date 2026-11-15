@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { api } from "@/lib/api";
 import type { Overview, Reading } from "@/lib/types";
 import { airPath } from "@/lib/air-detail";
@@ -91,15 +90,7 @@ export default async function Home() {
           ))}
 
           <section>
-            <SectionHeading
-              title={t.homeTrend.title}
-              note={coverage?.sentence ?? t.homeTrend.note}
-              action={
-                <Link href={localizeHref(locale, "/history")} className="chip">
-                  {t.nav.history}
-                </Link>
-              }
-            />
+            <SectionHeading title={t.homeTrend.title} note={coverage?.sentence ?? t.homeTrend.note} />
             <TrendCharts rows={chart} labelFor={(iso) => hourLabel(iso, locale)} />
           </section>
         </div>
