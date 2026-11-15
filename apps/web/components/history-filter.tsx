@@ -2,24 +2,8 @@
 
 import { useEffect, useId, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useI18n } from "@/components/i18n-provider";
 import { isDayKey } from "@/lib/history";
-
-const WEEKDAYS = ["Երկ", "Երք", "Չրք", "Հնգ", "Ուրբ", "Շբթ", "Կիր"];
-const MONTHS = [
-  "հունվար",
-  "փետրվար",
-  "մարտ",
-  "ապրիլ",
-  "մայիս",
-  "հունիս",
-  "հուլիս",
-  "օգոստոս",
-  "սեպտեմբեր",
-  "հոկտեմբեր",
-  "նոյեմբեր",
-  "դեկտեմբեր",
-];
-const MONTHS_SHORT = ["հնվ", "փտր", "մրտ", "ապր", "մյս", "հնս", "հլս", "օգս", "սեպ", "հոկ", "նոյ", "դեկ"];
 
 function parseKey(key: string) {
   const [year, month, day] = key.split("-").map(Number);
@@ -33,9 +17,9 @@ function dateKey(date: Date) {
   return `${year}-${month}-${day}`;
 }
 
-function shortDay(key: string) {
+function shortDay(key: string, months: readonly string[]) {
   const date = parseKey(key);
-  return `${date.getDate()} ${MONTHS_SHORT[date.getMonth()]}`;
+  return `${date.getDate()} ${months[date.getMonth()]}`;
 }
 
 function CalendarIcon() {
@@ -76,6 +60,9 @@ export function HistoryFilter({
   archiveTo: string | null;
 }) {
   const router = useRouter();
+  const { t } = useI18n();
+  const months = t.calendar.months;
+  const monthsShort = t.calendar.monthsShort;
   const dialogId = useId();
   const rootRef = useRef<HTMLDivElement>(null);
   const selected = Boolean(dayFrom && dayTo);
@@ -127,7 +114,7 @@ export function HistoryFilter({
 
   const lo = start && end ? (start < end ? start : end) : start;
   const hi = start && end ? (start < end ? end : start) : start;
-  const monthLabel = `${MONTHS[cursor.month]} ${cursor.year}`;
+  const monthLabel = `${months[cursor.month]} ${cursor.year}`;
   const archiveStart = archiveFrom ? parseKey(archiveFrom) : null;
   const archiveEnd = archiveTo ? parseKey(archiveTo) : null;
   const canPrev =
@@ -141,9 +128,9 @@ export function HistoryFilter({
   const buttonLabel =
     selected && dayFrom && dayTo
       ? dayFrom === dayTo
-        ? shortDay(dayFrom)
-        : `${shortDay(dayFrom)} – ${shortDay(dayTo)}`
-      : "Օրացույց";
+        ? shortDay(dayFrom, monthsShort)
+        : `${shortDay(dayFrom, monthsShort)} – ${shortDay(dayTo, monthsShort)}`
+      : t.calendar.label;
 
   return (
     <div ref={rootRef} className="relative z-20 flex items-center gap-4 sm:gap-6">
@@ -160,7 +147,7 @@ export function HistoryFilter({
         }`}
         aria-expanded={open}
         aria-controls={dialogId}
-        aria-label={selected ? `Օրացույց, ${buttonLabel}` : "Օրացույց"}
+        aria-label={selected ? t.calendar.selected(buttonLabel) : t.calendar.label}
         onClick={() => (open ? setOpen(false) : openCalendar())}
       >
         <span
@@ -180,14 +167,14 @@ export function HistoryFilter({
           <div
             id={dialogId}
             role="dialog"
-            aria-label="Օրացույց"
+            aria-label={t.calendar.label}
             className="panel absolute top-full left-1/2 z-30 mt-3 w-[20.5rem] max-w-[calc(100vw-3rem)] -translate-x-1/2 rounded-[24px] p-4"
           >
             <div className="flex items-center justify-between gap-3">
               <button
                 type="button"
                 className="grid size-8 place-items-center rounded-full text-lg text-ink-soft enabled:hover:bg-ink/5 disabled:opacity-30"
-                aria-label="Նախորդ ամիս"
+                aria-label={t.calendar.prevMonth}
                 disabled={!canPrev}
                 onClick={() =>
                   setCursor((current) => {
@@ -202,7 +189,7 @@ export function HistoryFilter({
               <button
                 type="button"
                 className="grid size-8 place-items-center rounded-full text-lg text-ink-soft enabled:hover:bg-ink/5 disabled:opacity-30"
-                aria-label="Հաջորդ ամիս"
+                aria-label={t.calendar.nextMonth}
                 disabled={!canNext}
                 onClick={() =>
                   setCursor((current) => {
@@ -216,7 +203,7 @@ export function HistoryFilter({
             </div>
 
             <div className="mt-3 grid grid-cols-7 gap-y-1 text-center text-[11px] text-ink-soft">
-              {WEEKDAYS.map((day) => (
+              {t.calendar.weekdays.map((day) => (
                 <span key={day} className="py-1">
                   {day}
                 </span>
@@ -233,7 +220,7 @@ export function HistoryFilter({
                     type="button"
                     disabled={!enabled}
                     aria-pressed={endpoint}
-                    aria-label={`${date.getDate()} ${MONTHS[date.getMonth()]} ${date.getFullYear()}`}
+                    aria-label={t.calendar.day(date.getDate(), months[date.getMonth()], date.getFullYear())}
                     className="relative h-9 disabled:cursor-default disabled:text-ink/25"
                     onClick={() => pick(key)}
                   >

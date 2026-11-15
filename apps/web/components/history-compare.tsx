@@ -1,4 +1,3 @@
-import { dictionary } from "@/lib/i18n/messages";
 import { formatSigned } from "@/lib/history";
 import type { Dictionary } from "@/lib/i18n/dictionary";
 import type { Locale } from "@/lib/i18n/locale";
@@ -18,31 +17,47 @@ type Card = {
   max?: number | null;
 };
 
-function amount(value: number, digits: number, unit: string) {
-  const text = formatMetric(value, digits);
+function amount(value: number, digits: number, unit: string, locale: Locale) {
+  const text = formatMetric(value, digits, locale);
   return unit ? `${text} ${unit}` : text;
 }
 
-function CompareCard({ card, previousLabel }: { card: Card; previousLabel: string }) {
-  const word = card.mode === "sum" ? "գումար" : "միջին";
+function CompareCard({
+  card,
+  previousLabel,
+  locale,
+  copy,
+}: {
+  card: Card;
+  previousLabel: string;
+  locale: Locale;
+  copy: Dictionary["history"];
+}) {
+  const word = card.mode === "sum" ? copy.sum : copy.avg;
   const hasDelta = card.delta != null && card.current != null && card.previous != null;
   const headline =
     hasDelta && card.delta != null
-      ? formatSigned(card.delta, card.digits)
+      ? formatSigned(card.delta, card.digits, locale)
       : card.current == null
         ? "—"
-        : formatMetric(card.current, card.digits);
+        : formatMetric(card.current, card.digits, locale);
+  const currentText = card.current == null ? "" : amount(card.current, card.digits, card.unit, locale);
   const detail =
     card.current == null
-      ? "չափում չկա"
+      ? copy.noReading
       : card.previous == null
-        ? `${word} ${amount(card.current, card.digits, card.unit)} · ${previousLabel} չկա`
-        : `${word} ${amount(card.current, card.digits, card.unit)} · ${previousLabel} ${amount(card.previous, card.digits, card.unit)}`;
+        ? copy.noPrevious(word, currentText, previousLabel)
+        : copy.compared(
+            word,
+            currentText,
+            previousLabel,
+            amount(card.previous, card.digits, card.unit, locale),
+          );
   const range =
     card.mode === "avg" && card.min != null && card.max != null
-      ? dictionary("am").history.range(
-          formatMetric(card.min, card.digits),
-          formatMetric(card.max, card.digits),
+      ? copy.range(
+          formatMetric(card.min, card.digits, locale),
+          formatMetric(card.max, card.digits, locale),
           card.unit,
         )
       : null;
@@ -90,24 +105,31 @@ function fromSum(label: string, unit: string, digits: number, stat: SumCompare):
   };
 }
 
-export function HistoryCompare({
+export async function HistoryCompare({
   history,
   previousLabel,
 }: {
   history: HistoryResponse;
   previousLabel: string;
 }) {
+  const { locale, t } = await getI18n();
   const cards = [
-    fromLevel("Օդի ջերմաստիճան", "°C", 1, history.airTemp),
-    fromLevel("Հողի խոնավություն", "%", 1, history.soilMoisture),
-    fromSum("Տեղումներ", "մմ", 1, history.rainfallMm),
-    fromLevel("Քամի", "m/s", 1, history.windSpeed),
+    fromLevel(t.history.cards.air, t.metrics.airTemp.unit, 1, history.airTemp),
+    fromLevel(t.history.cards.soil, t.metrics.soilMoisture.unit, 1, history.soilMoisture),
+    fromSum(t.history.cards.rain, t.metrics.rainfallMm.unit, 1, history.rainfallMm),
+    fromLevel(t.history.cards.wind, t.metrics.windSpeed.unit, 1, history.windSpeed),
   ];
 
   return (
     <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
       {cards.map((card) => (
-        <CompareCard key={card.label} card={card} previousLabel={previousLabel} />
+        <CompareCard
+          key={card.label}
+          card={card}
+          previousLabel={previousLabel}
+          locale={locale}
+          copy={t.history}
+        />
       ))}
     </div>
   );
