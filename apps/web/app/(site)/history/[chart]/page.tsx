@@ -7,7 +7,6 @@ import { TrendChartDetail, trendChartById } from "@/components/trend-charts";
 import { api } from "@/lib/api";
 import { historyNarratives } from "@/lib/day-reading";
 import {
-  grainMeanLabel,
   historyRangeLabel,
   historySectionNote,
   historyTickLabel,
