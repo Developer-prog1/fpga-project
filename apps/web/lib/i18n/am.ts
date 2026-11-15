@@ -12,7 +12,7 @@ export const am: Dictionary = {
     fullName: "Հայաստանի ազգային պոլիտեխնիկական համալսարան",
   },
   nav: { aria: "Բաժիններ", now: "Այժմ", history: "Պատմություն" },
-  lang: { group: "Լեզու" },
+  lang: { group: "Լեզու", hy: "Հայերեն", en: "English", ru: "Русский" },
   station: { name: "Համալսարան · դաշտ", location: "Արարատյան դաշտ" },
   empty: {
     title: "Կապը բացակայում է",

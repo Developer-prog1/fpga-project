@@ -3,27 +3,29 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useI18n } from "@/components/i18n-provider";
+import { localizeHref, stripLocalePath } from "@/lib/i18n/locale";
 
 export function SiteNav() {
   const pathname = usePathname();
-  const { t } = useI18n();
+  const path = stripLocalePath(pathname);
+  const { locale, t } = useI18n();
   const links = [
     {
-      href: "/",
+      href: localizeHref(locale, "/"),
       label: t.nav.now,
-      match: (path: string) => path === "/" || path.startsWith("/air"),
+      match: (value: string) => value === "/" || value.startsWith("/air"),
     },
     {
-      href: "/history",
+      href: localizeHref(locale, "/history"),
       label: t.nav.history,
-      match: (path: string) => path.startsWith("/history"),
+      match: (value: string) => value.startsWith("/history"),
     },
   ];
 
   return (
     <nav aria-label={t.nav.aria} className="flex items-center gap-2">
       {links.map((link) => {
-        const active = link.match(pathname);
+        const active = link.match(path);
         return (
           <Link
             key={link.href}

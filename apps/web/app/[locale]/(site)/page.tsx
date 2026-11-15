@@ -3,7 +3,7 @@ import { api } from "@/lib/api";
 import type { Overview, Reading } from "@/lib/types";
 import { airPath } from "@/lib/air-detail";
 import { recentWindowSpan } from "@/lib/history";
-import { intlLocale } from "@/lib/i18n/locale";
+import { intlLocale, localizeHref } from "@/lib/i18n/locale";
 import { getI18n } from "@/lib/i18n/server";
 import { downsample, formatMetric, metrics, seriesRange, windDegNorm, windDirLabel } from "@/lib/metrics";
 import { SectionHeading } from "@/components/section-heading";
@@ -67,6 +67,7 @@ export default async function Home() {
                         ? t.hints.rainSum(formatMetric(overview.summary?.rainfallMm.sum ?? 0, 1, locale))
                         : undefined;
 
+                  const path = airPath(metric.key);
                   return (
                     <MetricCard
                       key={metric.key}
@@ -81,7 +82,7 @@ export default async function Home() {
                       min={range.min}
                       max={range.max}
                       color={metric.color}
-                      href={airPath(metric.key) ?? undefined}
+                      href={path ? localizeHref(locale, path) : undefined}
                     />
                   );
                 })}
@@ -94,7 +95,7 @@ export default async function Home() {
               title={t.homeTrend.title}
               note={coverage?.sentence ?? t.homeTrend.note}
               action={
-                <Link href="/history" className="chip">
+                <Link href={localizeHref(locale, "/history")} className="chip">
                   {t.nav.history}
                 </Link>
               }

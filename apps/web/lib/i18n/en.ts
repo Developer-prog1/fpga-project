@@ -12,7 +12,7 @@ export const en: Dictionary = {
     fullName: "National Polytechnic University of Armenia",
   },
   nav: { aria: "Sections", now: "Now", history: "History" },
-  lang: { group: "Language" },
+  lang: { group: "Language", hy: "Հայերեն", en: "English", ru: "Русский" },
   station: { name: "University · field", location: "Ararat Valley" },
   empty: {
     title: "Connection unavailable",

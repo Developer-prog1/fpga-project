@@ -20,7 +20,7 @@ export const ru: Dictionary = {
     fullName: "Национальный политехнический университет Армении",
   },
   nav: { aria: "Разделы", now: "Сейчас", history: "История" },
-  lang: { group: "Язык" },
+  lang: { group: "Язык", hy: "Հայերեն", en: "English", ru: "Русский" },
   station: { name: "Университет · поле", location: "Араратская долина" },
   empty: {
     title: "Нет соединения",

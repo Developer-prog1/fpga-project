@@ -4,6 +4,7 @@ import { useEffect, useId, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useI18n } from "@/components/i18n-provider";
 import { isDayKey } from "@/lib/history";
+import { localizeHref } from "@/lib/i18n/locale";
 
 function parseKey(key: string) {
   const [year, month, day] = key.split("-").map(Number);
@@ -60,7 +61,7 @@ export function HistoryFilter({
   archiveTo: string | null;
 }) {
   const router = useRouter();
-  const { t } = useI18n();
+  const { locale, t } = useI18n();
   const months = t.calendar.months;
   const monthsShort = t.calendar.monthsShort;
   const dialogId = useId();
@@ -99,7 +100,7 @@ export function HistoryFilter({
   function apply(fromKey: string, toKey: string) {
     const [from, to] = fromKey <= toKey ? [fromKey, toKey] : [toKey, fromKey];
     setOpen(false);
-    router.push(`/history?from=${from}&to=${to}`);
+    router.push(localizeHref(locale, `/history?from=${from}&to=${to}`));
   }
 
   function pick(key: string) {

@@ -2,15 +2,16 @@ import Image from "next/image";
 import Link from "next/link";
 import { LanguageSwitcher } from "@/components/language-switcher";
 import { SiteNav } from "@/components/site-nav";
+import { localizeHref } from "@/lib/i18n/locale";
 import { getI18n } from "@/lib/i18n/server";
 
 export async function SiteHeader() {
-  const { t } = await getI18n();
+  const { locale, t } = await getI18n();
 
   return (
     <header className="site-header">
       <div className="flex w-full flex-col items-center gap-4 px-6 py-4">
-        <Link href="/" className="flex items-center gap-3 text-ink">
+        <Link href={localizeHref(locale, "/")} className="flex items-center gap-3 text-ink">
           <span className="rounded-full ring-1 ring-gold/80 ring-offset-4 ring-offset-[#f7f1e8]">
             <Image
               src="/npua-seal.png"

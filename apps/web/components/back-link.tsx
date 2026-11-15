@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { localizeHref } from "@/lib/i18n/locale";
 import { getI18n } from "@/lib/i18n/server";
 
 function BackArrow() {
@@ -16,10 +17,10 @@ function BackArrow() {
 }
 
 export async function BackLink({ href = "/", label }: { href?: string; label?: string }) {
-  const { t } = await getI18n();
+  const { locale, t } = await getI18n();
   return (
     <Link
-      href={href}
+      href={localizeHref(locale, href)}
       className="group inline-flex items-center gap-2.5 rounded-full border border-ink/10 bg-paper py-1.5 pr-4 pl-1.5 text-ink shadow-[0_10px_18px_-16px_rgba(26,18,14,0.45)] transition hover:border-gold/70"
     >
       <span className="grid size-8 place-items-center rounded-full bg-ink text-cream transition group-hover:bg-garnet">

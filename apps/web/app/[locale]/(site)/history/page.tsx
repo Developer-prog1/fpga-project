@@ -16,6 +16,7 @@ import {
   inclusiveDays,
   isDayKey,
 } from "@/lib/history";
+import { localizeHref } from "@/lib/i18n/locale";
 import { getI18n } from "@/lib/i18n/server";
 import type { HistoryResponse } from "@/lib/types";
 
