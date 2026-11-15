@@ -21,7 +21,7 @@ type MetricDetailProps = {
   chartNote?: string;
 };
 
-async function DetailIntro({
+function DetailIntro({
   reading,
   value,
   unit,
@@ -30,14 +30,11 @@ async function DetailIntro({
   watch,
   stats,
 }: Omit<MetricDetailProps, "series" | "labels" | "times" | "unitLabel" | "label" | "about" | "chartNote">) {
-  const { t } = await getI18n();
   return (
       <section className="panel mt-8 rounded-[32px] p-6 sm:p-8">
         <div className="flex flex-wrap items-end justify-between gap-4">
           <div>
-            <p className="text-[11px] uppercase tracking-[0.2em] text-ink-soft">
-              {t.detail.now} · {when}
-            </p>
+            <p className="text-[11px] uppercase tracking-[0.2em] text-ink-soft">Հիմա · {when}</p>
             <p className="stat-number mt-3 font-serif text-6xl leading-none sm:text-7xl">
               {value}
               {unit ? (
@@ -53,6 +50,9 @@ async function DetailIntro({
               watch ? "bg-garnet/10 text-garnet" : "bg-forest/10 text-forest"
             }`}
           >
+            {watch ?? "նորմա"}
+          </span>
+        </div>
             {watch ?? t.normal}
           </span>
         </div>
@@ -70,12 +70,12 @@ async function DetailIntro({
 }
 
 async function DetailChart({
-  series,
-  labels,
-  times,
   unitLabel,
   chartNote,
 }: Pick<MetricDetailProps, "series" | "labels" | "times" | "unitLabel" | "chartNote">) {
+  return (
+    <section className="panel mt-4 rounded-[32px] p-6 sm:p-8">
+      <h2 className="font-serif text-2xl tracking-tight">24 ժամվա ընթացք</h2>
   const { locale, t } = await getI18n();
   return (
     <section className="panel mt-4 rounded-[32px] p-6 sm:p-8">
@@ -83,22 +83,19 @@ async function DetailChart({
       {chartNote ? <p className="mt-2 max-w-2xl text-sm text-ink-soft">{chartNote}</p> : null}
       <div className="gold-rule mt-3 w-16" />
       <ChartLegend series={series} locale={locale} />
-      <div className="mt-4">
-        <TimeChart labels={labels} times={times} series={series} unitLeft={unitLabel} />
-      </div>
     </section>
   );
 }
 
+export function MetricDetail(props: MetricDetailProps) {
+  return (
+    <div className="px-6 py-8 sm:px-8 lg:px-12 lg:py-10">
 export async function MetricDetail(props: MetricDetailProps) {
   const { t } = await getI18n();
   return (
     <div className="px-6 py-8 sm:px-8 lg:px-12 lg:py-10">
       <BackLink />
       <p className="kicker mt-8 text-gold">{t.detail.atmosphere}</p>
-      <h1 className="mt-3 font-serif text-4xl tracking-tight sm:text-5xl">{props.label}</h1>
-      <div className="gold-rule mt-4 w-24" />
-      <p className="mt-4 max-w-3xl text-lg leading-relaxed text-ink-soft">{props.about}</p>
       <DetailIntro {...props} />
       <DetailChart
         series={props.series}
