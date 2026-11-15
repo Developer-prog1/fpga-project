@@ -243,12 +243,12 @@ export function HistoryFilter({
 
             <p className="mt-3 min-h-10 text-sm leading-relaxed text-ink-soft">
               {!archiveFrom
-                ? "Արխիվում դեռ օր չկա, որ կարելի լինի ընտրել։"
+                ? t.calendar.empty
                 : !start
-                  ? "Ընտրիր երկու օր. առաջինը սկիզբն է, երկրորդը՝ վերջը։"
+                  ? t.calendar.choose
                   : !end
-                    ? `Սկիզբը ${shortDay(start)}-ն է. հիմա նշիր վերջի օրը։`
-                    : `${shortDay(lo!)} – ${shortDay(hi!)}`}
+                    ? t.calendar.startPicked(shortDay(start, monthsShort))
+                    : `${shortDay(lo!, monthsShort)} – ${shortDay(hi!, monthsShort)}`}
             </p>
             <button
               type="button"
@@ -256,7 +256,7 @@ export function HistoryFilter({
               disabled={!start || !end || !isDayKey(start) || !isDayKey(end)}
               onClick={() => start && end && apply(start, end)}
             >
-              Դիտել
+              {t.calendar.view}
             </button>
           </div>
         ) : null}
