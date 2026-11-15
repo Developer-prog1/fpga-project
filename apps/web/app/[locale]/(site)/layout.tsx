@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+import { HourlyRefresh } from "@/components/hourly-refresh";
 import { I18nProvider } from "@/components/i18n-provider";
 import { SiteHeader } from "@/components/site-header";
 import { isUrlLocale, localeFromUrl } from "@/lib/i18n/locale";
@@ -18,6 +19,7 @@ export default async function SiteLayout({
   return (
     <I18nProvider locale={locale}>
       <div className="canvas min-h-dvh">
+        <HourlyRefresh />
         <SiteHeader />
         {children}
       </div>
