@@ -3,6 +3,7 @@ import { api } from "@/lib/api";
 import type { Overview, Reading } from "@/lib/types";
 import { airPath } from "@/lib/air-detail";
 import { recentWindowSpan } from "@/lib/history";
+import { getI18n } from "@/lib/i18n/server";
 import { intlLocale } from "@/lib/i18n/locale";
 import { getI18n } from "@/lib/i18n/server";
 import { downsample, formatMetric, metrics, seriesRange, windDegNorm, windDirLabel } from "@/lib/metrics";

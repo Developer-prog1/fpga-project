@@ -7,6 +7,7 @@ import { HistoryFilter } from "@/components/history-filter";
 import { SectionHeading } from "@/components/section-heading";
 import { TrendCharts } from "@/components/trend-charts";
 import { api } from "@/lib/api";
+import { getI18n } from "@/lib/i18n/server";
 import {
   historyCompareNote,
   historyPreviousLabel,
@@ -93,13 +94,14 @@ export default async function HistoryPage({ searchParams }: HistoryPageProps) {
   );
 }
 
-function HistoryResults({
+async function HistoryResults({
   history,
   locale,
 }: {
   history: HistoryResponse;
   locale: Awaited<ReturnType<typeof getI18n>>["locale"];
 }) {
+  const { t } = await getI18n();
   const days = inclusiveDays(history.dayFrom, history.dayTo);
   const compareDays = days > 1 && history.grain !== "1d";
 
@@ -120,7 +122,7 @@ function HistoryResults({
           }
         />
         {history.points.length === 0 ? (
-          <EmptyRange />
+          <p className="text-ink-soft">{t.history.empty}</p>
         ) : (
           <TrendCharts
             rows={history.points}

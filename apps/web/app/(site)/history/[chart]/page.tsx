@@ -7,13 +7,13 @@ import { TrendChartDetail, trendChartById } from "@/components/trend-charts";
 import { api } from "@/lib/api";
 import { historyNarratives } from "@/lib/day-reading";
 import {
-  grainMeanLabel,
   historyRangeLabel,
   historySectionNote,
   historyTickLabel,
   inclusiveDays,
   isDayKey,
 } from "@/lib/history";
+import { getI18n } from "@/lib/i18n/server";
 import type { HistoryResponse } from "@/lib/types";
 
 type HistoryChartPageProps = {
@@ -29,14 +29,16 @@ function one(value: string | string[] | undefined) {
 }
 
 export async function generateMetadata({ params }: HistoryChartPageProps): Promise<Metadata> {
+  const { locale, t } = await getI18n();
   const { chart } = await params;
-  const item = trendChartById(chart);
-  return { title: item ? `${item.title} · Պատմություն` : "Պատմություն" };
+  const item = trendChartById(chart, locale);
+  return { title: item ? `${item.title} · ${t.history.title}` : t.history.title };
 }
 
 export default async function HistoryChartPage({ params, searchParams }: HistoryChartPageProps) {
+  const { locale, t } = await getI18n();
   const { chart: chartId } = await params;
-  const chart = trendChartById(chartId);
+  const chart = trendChartById(chartId, locale);
   if (!chart) notFound();
 
   const query = await searchParams;
@@ -54,6 +56,7 @@ export default async function HistoryChartPage({ params, searchParams }: History
     );
   }
 
+  const { locale, t } = await getI18n();
   const days = inclusiveDays(history.dayFrom, history.dayTo);
   const compareDays = days > 1 && history.grain !== "1d";
   const backHref = `/history?from=${history.dayFrom}&to=${history.dayTo}`;
@@ -65,28 +68,33 @@ export default async function HistoryChartPage({ params, searchParams }: History
       <h1 className="mt-3 font-serif text-4xl tracking-tight sm:text-5xl">{chart.title}</h1>
       <p className="mt-4 max-w-2xl text-lg leading-relaxed text-ink-soft">
         {compareDays
-          ? `${chart.compareNote}. Կետերը ${grainMeanLabel(history.grain)} են. ժամերը համընկնում են, որ ամեն օրվա գիծը առանձին երևա։`
-          : historySectionNote(history.grain)}
+          ? `${chart.compareNote}. ${t.history.detailPoints(grainMeanLabel(history.grain, locale))}`
+          : historySectionNote(history.grain, locale)}
       </p>
       <div className="gold-rule mt-4 w-24" />
       {history.points.length === 0 ? (
-        <p className="mt-8 text-ink-soft">Այս հատվածում չափում չկա։</p>
+        <p className="mt-8 text-ink-soft">{t.history.empty}</p>
       ) : (
         <div className="panel mt-8 rounded-[32px] p-5 sm:p-8">
           <TrendChartDetail
             chart={chart}
             rows={history.points}
-            labelFor={(iso) => historyTickLabel(iso, history.grain, days)}
+            labelFor={(iso) => historyTickLabel(iso, history.grain, days, locale)}
             shadeNight={history.shadeNight}
             compareDays={compareDays}
           />
           <HistoryNarrative
             title={
-              compareDays ? "Օրերի վիճակը" : days > 1 ? "Ընտրված օրերի վիճակը" : "Օրվա վիճակը"
+              compareDays
+                ? t.history.narrativeCompare
+                : days > 1
+                  ? t.history.narrativeDays
+                  : t.history.narrativeDay
             }
             readings={historyNarratives(chart.id, history.points, {
               grain: history.grain,
               compareDays,
+              locale,
             })}
           />
         </div>
