@@ -1,5 +1,8 @@
 import { dictionary } from "@/lib/i18n/messages";
 import { formatSigned } from "@/lib/history";
+import type { Dictionary } from "@/lib/i18n/dictionary";
+import type { Locale } from "@/lib/i18n/locale";
+import { getI18n } from "@/lib/i18n/server";
 import { formatMetric } from "@/lib/metrics";
 import type { HistoryResponse, LevelCompare, SumCompare } from "@/lib/types";
 
