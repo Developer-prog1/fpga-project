@@ -1,5 +1,5 @@
 import { MoistureGauge, Ribbon, WindRose } from "@/components/charts";
-import { stationPlace, stationTitle } from "@/lib/i18n/messages";
+import { stationPlace } from "@/lib/i18n/messages";
 import { intlLocale } from "@/lib/i18n/locale";
 import { getI18n } from "@/lib/i18n/server";
 import { formatMetric, windDegNorm, windDirFull, windDirLabel } from "@/lib/metrics";
@@ -27,9 +27,6 @@ export async function HeroNow({
       <div className="flex flex-col gap-5 md:flex-row md:items-start md:justify-between">
         <div>
           <p className="kicker text-gold">{stationPlace(overview.station?.location, t)}</p>
-          <h1 className="mt-3 font-serif text-4xl leading-[1.08] tracking-tight sm:text-5xl">
-            {stationTitle(overview.station?.name, t)}
-          </h1>
           <p className="mt-3 flex flex-wrap items-center gap-2 text-ink-soft">
             <span className="live-dot" />
             {t.hero.latest} · {when}

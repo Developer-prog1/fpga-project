@@ -13,7 +13,7 @@ export const en: Dictionary = {
   },
   nav: { aria: "Sections", now: "Now", history: "History" },
   lang: { group: "Language", hy: "Հայերեն", en: "English", ru: "Русский" },
-  station: { name: "University · field", location: "Ararat Valley" },
+  station: { location: "Ararat Valley" },
   empty: {
     title: "Connection unavailable",
     body: "The overview is unavailable. Start the API and load the sensor readings.",

@@ -43,7 +43,7 @@ export type Dictionary = {
   brand: { mark: string; fullName: string };
   nav: { aria: string; now: string; history: string };
   lang: { group: string; hy: string; en: string; ru: string };
-  station: { name: string; location: string };
+  station: { location: string };
   empty: { title: string; body: string };
   notFound: { title: string; body: string; home: string };
   back: { home: string };

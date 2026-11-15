@@ -21,7 +21,7 @@ export const ru: Dictionary = {
   },
   nav: { aria: "Разделы", now: "Сейчас", history: "История" },
   lang: { group: "Язык", hy: "Հայերեն", en: "English", ru: "Русский" },
-  station: { name: "Университет · поле", location: "Араратская долина" },
+  station: { location: "Араратская долина" },
   empty: {
     title: "Нет соединения",
     body: "Данные обзора недоступны. Запустите API и загрузите показания датчиков.",

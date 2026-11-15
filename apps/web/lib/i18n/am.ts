@@ -13,7 +13,7 @@ export const am: Dictionary = {
   },
   nav: { aria: "Բաժիններ", now: "Այժմ", history: "Պատմություն" },
   lang: { group: "Լեզու", hy: "Հայերեն", en: "English", ru: "Русский" },
-  station: { name: "Համալսարան · դաշտ", location: "Արարատյան դաշտ" },
+  station: { location: "Արարատյան դաշտ" },
   empty: {
     title: "Կապը բացակայում է",
     body: "Ակնարկի տվյալները հասանելի չեն։ Գործարկեք API-ն և լցրեք սենսորային չափումները։",
