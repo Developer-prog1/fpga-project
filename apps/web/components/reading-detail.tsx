@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import { MetricDetail, type DetailStat } from "@/components/metric-detail";
 import { api } from "@/lib/api";
 import { detailPage, type DetailPage } from "@/lib/air-detail";
+import { recentWindow } from "@/lib/day-window";
 import { recentWindowSpan } from "@/lib/history";
 import type { Dictionary } from "@/lib/i18n/dictionary";
 import { intlLocale, type Locale } from "@/lib/i18n/locale";
@@ -90,6 +91,7 @@ async function ReadingBody({ page }: { page: DetailPage }) {
       chartNote={recentWindowSpan(series, Date.now(), 24, locale)?.sentence}
       labels={series.map((row) => hourLabel(row.recordedAt, locale))}
       times={series.map((row) => row.recordedAt)}
+      timeWindow={recentWindow(Date.now(), 24)}
       unitLabel={metric.unit || metric.label}
       series={[
         {

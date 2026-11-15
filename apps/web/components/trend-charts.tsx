@@ -1,6 +1,7 @@
 import { ChartLegend, TimeChart, chartDomain, type ChartSeries } from "@/components/charts";
 import { ChartFrame } from "@/components/section-heading";
 import { groupByDay, minutesOfDay, type DayBucket } from "@/lib/day-compare";
+import type { ChartWindow } from "@/lib/day-window";
 import type { ChartId } from "@/lib/i18n/dictionary";
 import { dictionary } from "@/lib/i18n/messages";
 import type { Locale } from "@/lib/i18n/locale";
@@ -257,12 +258,14 @@ export async function TrendCharts({
   shadeNight = true,
   compareDays = false,
   hrefFor,
+  timeWindow,
 }: {
   rows: TrendRow[];
   labelFor: (iso: string) => string;
   shadeNight?: boolean;
   compareDays?: boolean;
   hrefFor?: (chartId: string) => string;
+  timeWindow?: ChartWindow;
 }) {
   const { locale } = await getI18n();
   const labels = rows.map((row) => labelFor(row.recordedAt));
@@ -294,6 +297,8 @@ export async function TrendCharts({
                     unitLeft={chart.metrics[0]?.unit}
                     unitRight={right ? right.unit || right.label : undefined}
                     shadeNight={shadeNight}
+                    timeWindow={timeWindow}
+                    locale={locale}
                   />
                 </div>
               </>

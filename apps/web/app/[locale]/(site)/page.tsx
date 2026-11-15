@@ -2,21 +2,16 @@ import { api } from "@/lib/api";
 import type { Overview, Reading } from "@/lib/types";
 import { airPath } from "@/lib/air-detail";
 import { dayKeyFromIso } from "@/lib/day-compare";
+import { recentWindow } from "@/lib/day-window";
 import { recentWindowSpan } from "@/lib/history";
 import { intlLocale, localizeHref } from "@/lib/i18n/locale";
 import { getI18n } from "@/lib/i18n/server";
-import { downsample, formatMetric, metrics, seriesRange, windDegNorm, windDirLabel } from "@/lib/metrics";
+import { formatMetric, metrics, seriesRange, windDegNorm, windDirLabel } from "@/lib/metrics";
 import { SectionHeading } from "@/components/section-heading";
 import { EmptyState } from "@/components/empty-state";
 import { MetricCard } from "@/components/metric-card";
 import { TrendCharts } from "@/components/trend-charts";
 import { HeroNow } from "@/components/hero-now";
-
-function pickReadings(rows: Reading[], size = 48) {
-  if (rows.length <= size) return rows;
-  const step = (rows.length - 1) / (size - 1);
-  return Array.from({ length: size }, (_, i) => rows[Math.round(i * step)]);
-}
 
 function chartHref(rows: Reading[], locale: Parameters<typeof intlLocale>[0]) {
   const first = rows[0]?.recordedAt;
@@ -45,8 +40,9 @@ export default async function Home() {
 
   const latest = overview?.latest;
   const series = readings ?? [];
-  const chart = pickReadings(series);
-  const coverage = recentWindowSpan(series, Date.now(), 24, locale);
+  const timeWindow = recentWindow(Date.now(), 24);
+  const times = series.map((row) => row.recordedAt);
+  const coverage = recentWindowSpan(series, timeWindow.end, 24, locale);
 
   return (
     <div className="py-8 lg:py-10">
@@ -59,7 +55,9 @@ export default async function Home() {
           <HeroNow
             overview={overview}
             latest={latest}
-            airTemps={downsample(series.map((row) => row.airTemp), 36)}
+            airTemps={series.map((row) => row.airTemp)}
+            airTimes={times}
+            timeWindow={timeWindow}
             coverageLabel={coverage?.label}
           />
 
@@ -88,7 +86,9 @@ export default async function Home() {
                       digits={metric.digits}
                       hint={hint}
                       watch={metric.watch(latest[metric.key])}
-                      spark={downsample(values)}
+                      spark={values}
+                      sparkTimes={times}
+                      timeWindow={timeWindow}
                       min={range.min}
                       max={range.max}
                       color={metric.color}
@@ -103,9 +103,10 @@ export default async function Home() {
           <section>
             <SectionHeading title={t.homeTrend.title} note={coverage?.sentence ?? t.homeTrend.note} />
             <TrendCharts
-              rows={chart}
+              rows={series}
               labelFor={(iso) => hourLabel(iso, locale)}
               hrefFor={chartHref(series, locale)}
+              timeWindow={timeWindow}
             />
           </section>
         </div>

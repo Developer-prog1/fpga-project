@@ -1,4 +1,5 @@
 import { MoistureGauge, Ribbon, WindRose } from "@/components/charts";
+import type { ChartWindow } from "@/lib/day-window";
 import { stationPlace } from "@/lib/i18n/messages";
 import { intlLocale } from "@/lib/i18n/locale";
 import { getI18n } from "@/lib/i18n/server";
@@ -9,11 +10,15 @@ export async function HeroNow({
   overview,
   latest,
   airTemps,
+  airTimes,
+  timeWindow,
   coverageLabel,
 }: {
   overview: Overview;
   latest: Reading;
   airTemps: number[];
+  airTimes?: string[];
+  timeWindow?: ChartWindow;
   coverageLabel?: string;
 }) {
   const { locale, t } = await getI18n();
@@ -60,7 +65,7 @@ export async function HeroNow({
           </p>
           <div className="mt-5">
             <p className="mb-1 text-[11px] text-ink-soft">{t.hero.ribbon(coverageLabel)}</p>
-            <Ribbon values={airTemps} color="#7a2433" />
+            <Ribbon values={airTemps} times={airTimes} timeWindow={timeWindow} color="#7a2433" />
           </div>
         </div>
 

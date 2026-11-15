@@ -1,5 +1,6 @@
 import { BackLink } from "@/components/back-link";
 import { ChartLegend, TimeChart, type ChartSeries } from "@/components/charts";
+import type { ChartWindow } from "@/lib/day-window";
 import { getI18n } from "@/lib/i18n/server";
 
 export type DetailStat = { label: string; value: string };
@@ -20,6 +21,7 @@ type MetricDetailProps = {
   times: string[];
   unitLabel: string;
   chartNote?: string;
+  timeWindow?: ChartWindow;
 };
 
 async function DetailIntro({
@@ -76,7 +78,8 @@ async function DetailChart({
   times,
   unitLabel,
   chartNote,
-}: Pick<MetricDetailProps, "series" | "labels" | "times" | "unitLabel" | "chartNote">) {
+  timeWindow,
+}: Pick<MetricDetailProps, "series" | "labels" | "times" | "unitLabel" | "chartNote" | "timeWindow">) {
   const { locale, t } = await getI18n();
   return (
     <section className="panel mt-4 rounded-[32px] p-6 sm:p-8">
@@ -85,7 +88,14 @@ async function DetailChart({
       <div className="gold-rule mt-3 w-16" />
       <ChartLegend series={series} locale={locale} />
       <div className="mt-4">
-        <TimeChart labels={labels} times={times} series={series} unitLeft={unitLabel} />
+        <TimeChart
+          labels={labels}
+          times={times}
+          series={series}
+          unitLeft={unitLabel}
+          timeWindow={timeWindow}
+          locale={locale}
+        />
       </div>
     </section>
   );
@@ -106,6 +116,7 @@ export async function MetricDetail(props: MetricDetailProps) {
         times={props.times}
         unitLabel={props.unitLabel}
         chartNote={props.chartNote}
+        timeWindow={props.timeWindow}
       />
     </div>
   );

@@ -1,5 +1,6 @@
+import { nightIntervals, windowTickMarks, xInWindow, type ChartWindow } from "@/lib/day-window";
 import { dictionary } from "@/lib/i18n/messages";
-import type { Locale } from "@/lib/i18n/locale";
+import { intlLocale, type Locale } from "@/lib/i18n/locale";
 import { formatMetric, legendAmount } from "@/lib/metrics";
 
 type Pt = { x: number; y: number };
@@ -87,11 +88,29 @@ function xAt(i: number, n: number, left: number, innerW: number) {
   return left + (i / Math.max(n - 1, 1)) * innerW;
 }
 
+function splitByGap(points: { x: number; y: number; at: number }[]) {
+  const steps = points.slice(1).map((point, i) => point.at - points[i].at).filter((gap) => gap > 0);
+  const maxGap = (steps.length ? Math.min(...steps) : 1) * 1.75;
+  const runs: { x: number; y: number }[][] = [];
+  for (let i = 0; i < points.length; i++) {
+    const point = points[i];
+    const prev = points[i - 1];
+    const run = runs[runs.length - 1];
+    if (!run || !prev || point.at - prev.at > maxGap) runs.push([point]);
+    else run.push(point);
+  }
+  return runs;
+}
+
 export function Ribbon({
   values,
+  times,
+  timeWindow,
   color = "#7a2433",
 }: {
   values: number[];
+  times?: string[];
+  timeWindow?: ChartWindow;
   color?: string;
 }) {
   if (values.length < 2) return null;
@@ -101,8 +120,11 @@ export function Ribbon({
   const w = 420;
   const h = 78;
   const pad = 4;
+  const timed = Boolean(timeWindow && times && times.length === values.length);
   const points = values.map((value, i) => ({
-    x: pad + (i / (values.length - 1)) * (w - pad * 2),
+    x: timed
+      ? xInWindow(Date.parse(times?.[i] ?? ""), timeWindow as ChartWindow, pad, w - pad * 2)
+      : pad + (i / (values.length - 1)) * (w - pad * 2),
     y: h - pad - ((value - min) / span) * (h - pad * 2),
   }));
   const line = smoothLine(points);
@@ -129,9 +151,13 @@ export function Ribbon({
 
 export function Sparkline({
   values,
+  times,
+  timeWindow,
   color = "#c4a35a",
 }: {
   values: number[];
+  times?: string[];
+  timeWindow?: ChartWindow;
   color?: string;
 }) {
   if (values.length < 2) return null;
@@ -142,8 +168,11 @@ export function Sparkline({
   const w = 420;
   const h = 72;
   const pad = 6;
+  const timed = Boolean(timeWindow && times && times.length === values.length);
   const points = values.map((value, i) => ({
-    x: pad + (i / (values.length - 1)) * (w - pad * 2),
+    x: timed
+      ? xInWindow(Date.parse(times?.[i] ?? ""), timeWindow as ChartWindow, pad, w - pad * 2)
+      : pad + (i / (values.length - 1)) * (w - pad * 2),
     y: h - pad - ((value - min) / span) * (h - pad * 2),
   }));
   const line = smoothLine(points);
@@ -190,6 +219,8 @@ export function TimeChart({
   height = 268,
   yDomain,
   caption,
+  timeWindow,
+  locale = "am",
 }: {
   labels: string[];
   times?: string[];
@@ -200,6 +231,8 @@ export function TimeChart({
   height?: number;
   yDomain?: { min: number; max: number };
   caption?: string;
+  timeWindow?: ChartWindow;
+  locale?: Locale;
 }) {
   const w = 720;
   const h = height;
@@ -210,6 +243,7 @@ export function TimeChart({
   const n = Math.max(...series.map((s) => s.values.length), 1);
 
   const clock = series.some((item) => (item.xMinutes?.length ?? 0) > 0);
+  const timeSpan = timeWindow && times && times.length > 0 ? timeWindow : null;
   const leftVals = series.filter((s) => (s.axis ?? "left") === "left").flatMap((s) => s.values);
   const rightVals = series.filter((s) => s.axis === "right").flatMap((s) => s.values);
   const left = yDomain ?? niceBounds(leftVals.length ? leftVals : [0, 1]);
@@ -236,22 +270,27 @@ export function TimeChart({
 
   const nightRects = !shadeNight
     ? []
-    : clock
-      ? [
-          { x: xFromMinutes(0), width: xFromMinutes(6 * 60) - xFromMinutes(0) },
-          { x: xFromMinutes(20 * 60), width: xFromMinutes(24 * 60) - xFromMinutes(20 * 60) },
-        ]
-      : (times?.flatMap((iso, i) => {
-          const hour = new Date(iso).getHours();
-          const night = hour >= 20 || hour < 6;
-          if (!night || i === n - 1) return [];
-          const x = xAt(i, n, pad.l, innerW);
-          const next = xAt(i + 1, n, pad.l, innerW);
-          return [{ x, width: Math.max(next - x, 0.5) }];
-        }) ?? []);
+    : timeSpan
+      ? nightIntervals(timeSpan).map((band) => {
+          const x = xInWindow(band.start, timeSpan, pad.l, innerW);
+          return { x, width: Math.max(xInWindow(band.end, timeSpan, pad.l, innerW) - x, 0) };
+        })
+      : clock
+        ? [
+            { x: xFromMinutes(0), width: xFromMinutes(6 * 60) - xFromMinutes(0) },
+            { x: xFromMinutes(20 * 60), width: xFromMinutes(24 * 60) - xFromMinutes(20 * 60) },
+          ]
+        : (times?.flatMap((iso, i) => {
+            const hour = new Date(iso).getHours();
+            const night = hour >= 20 || hour < 6;
+            if (!night || i === n - 1) return [];
+            const x = xAt(i, n, pad.l, innerW);
+            const next = xAt(i + 1, n, pad.l, innerW);
+            return [{ x, width: Math.max(next - x, 0.5) }];
+          }) ?? []);
 
   const timeTicks =
-    clock || labels.length === 0
+    timeSpan || clock || labels.length === 0
       ? []
       : [0, 0.25, 0.5, 0.75, 1].map((t) => {
           const i = Math.min(labels.length - 1, Math.round(t * (labels.length - 1)));
@@ -264,6 +303,97 @@ export function TimeChart({
         anchor: hour === 0 ? "start" : hour === 24 ? "end" : "middle",
       }))
     : [];
+  const spanTicks = timeSpan
+    ? windowTickMarks(timeSpan).map((ms) => {
+        const x = xInWindow(ms, timeSpan, pad.l, innerW);
+        const anchor = x <= pad.l + 36 ? "start" : x >= w - pad.r - 36 ? "end" : "middle";
+        return {
+          x,
+          label: new Intl.DateTimeFormat(intlLocale(locale), { hour: "2-digit", minute: "2-digit" }).format(ms),
+          anchor,
+        } as const;
+      })
+    : [];
+
+  function drawOnWindow(item: ChartSeries, si: number, kind: NonNullable<ChartSeries["kind"]> | "area") {
+    if (!timeSpan || !times) return null;
+    const axis = axisOf(item);
+    if (kind === "bars") {
+      const width = Math.max(2.5, Math.min(8, (innerW / 96) * 0.72));
+      return (
+        <g key={`${item.label}-${si}`}>
+          <title>{item.label}</title>
+          {item.values.map((value, i) => {
+            const at = Date.parse(times[i] ?? "");
+            if (!Number.isFinite(at) || value <= 0.01) return null;
+            const center = xInWindow(at, timeSpan, pad.l, innerW);
+            const y = scaleY(value, axis.min, axis.span, pad.t, innerH);
+            const barH = pad.t + innerH - y;
+            return (
+              <rect
+                key={i}
+                x={center - width / 2}
+                y={y}
+                width={width}
+                height={Math.max(barH, 0)}
+                rx="1.5"
+                fill={item.color}
+                opacity="0.82"
+              />
+            );
+          })}
+        </g>
+      );
+    }
+
+    const located: { x: number; y: number; at: number }[] = [];
+    item.values.forEach((value, i) => {
+      const at = Date.parse(times[i] ?? "");
+      if (!Number.isFinite(at) || !Number.isFinite(value)) return;
+      located.push({
+        x: xInWindow(at, timeSpan, pad.l, innerW),
+        y: scaleY(value, axis.min, axis.span, pad.t, innerH),
+        at,
+      });
+    });
+    located.sort((a, b) => a.at - b.at);
+    const runs = splitByGap(located);
+    const baseline = pad.t + innerH;
+    const gid = `fill-${si}-${item.color.replace("#", "")}`;
+    const dashed = kind === "line";
+    const lastRun = runs[runs.length - 1];
+    const tip = lastRun && lastRun.length > 1 ? lastRun[lastRun.length - 1] : null;
+
+    return (
+      <g key={`${item.label}-${si}`}>
+        <title>{item.label}</title>
+        {runs.map((run, ri) =>
+          run.length > 1 ? (
+            <g key={ri}>
+              {kind === "area" ? (
+                <path
+                  d={`${smoothLine(run)} L ${run[run.length - 1].x.toFixed(1)} ${baseline} L ${run[0].x.toFixed(1)} ${baseline} Z`}
+                  fill={`url(#${gid})`}
+                />
+              ) : null}
+              <path
+                d={smoothLine(run)}
+                fill="none"
+                stroke={item.color}
+                strokeWidth="2.4"
+                strokeLinejoin="round"
+                strokeLinecap="round"
+                strokeDasharray={dashed ? "7 6" : undefined}
+              />
+            </g>
+          ) : (
+            <circle key={ri} cx={run[0].x} cy={run[0].y} r="2.6" fill={item.color} />
+          ),
+        )}
+        {tip ? <circle cx={tip.x} cy={tip.y} r="3.2" fill={item.color} /> : null}
+      </g>
+    );
+  }
 
   return (
     <div>
@@ -324,6 +454,7 @@ export function TimeChart({
 
         {series.map((item, si) => {
           const kind = item.kind ?? "area";
+          if (timeSpan) return drawOnWindow(item, si, kind);
           const pts = pointsOf(item.values, item.axis);
           if (kind === "bars" && item.xMinutes) {
             const mates = series.filter((other) => (other.kind ?? "area") === "bars" && other.xMinutes);
@@ -466,6 +597,20 @@ export function TimeChart({
             </g>
           );
         })}
+
+        {spanTicks.map((tick) => (
+          <text
+            key={tick.label + tick.x}
+            x={tick.x}
+            y={h - 10}
+            textAnchor={tick.anchor}
+            fill="#5c5148"
+            fontSize="11"
+            style={{ fontFamily: "var(--font-sans-armenian), sans-serif" }}
+          >
+            {tick.label}
+          </text>
+        ))}
 
         {hourTicks.map((tick) => (
           <text
