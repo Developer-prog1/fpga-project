@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { getI18n } from "@/lib/i18n/server";
 
 export function SectionHeading({
   title,
@@ -21,7 +22,7 @@ export function SectionHeading({
   );
 }
 
-export function ChartFrame({
+export async function ChartFrame({
   title,
   note,
   href,
@@ -32,11 +33,12 @@ export function ChartFrame({
   href?: string;
   children: React.ReactNode;
 }) {
+  const { t } = await getI18n();
   const body = (
     <>
       <div className="flex items-start justify-between gap-3">
         <h3 className="font-serif text-xl tracking-tight">{title}</h3>
-        {href ? <span className="pt-1 text-sm text-gold">Բացել</span> : null}
+        {href ? <span className="pt-1 text-sm text-gold">{t.open}</span> : null}
       </div>
       <p className="mt-1 text-sm text-ink-soft">{note}</p>
       <div className="gold-rule mt-3 mb-1 w-16" />

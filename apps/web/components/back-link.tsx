@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { getI18n } from "@/lib/i18n/server";
 
 function BackArrow() {
   return (
@@ -14,7 +15,8 @@ function BackArrow() {
   );
 }
 
-export function BackLink({ href = "/", label = "Գլխավոր" }: { href?: string; label?: string }) {
+export async function BackLink({ href = "/", label }: { href?: string; label?: string }) {
+  const { t } = await getI18n();
   return (
     <Link
       href={href}
@@ -23,7 +25,7 @@ export function BackLink({ href = "/", label = "Գլխավոր" }: { href?: stri
       <span className="grid size-8 place-items-center rounded-full bg-ink text-cream transition group-hover:bg-garnet">
         <BackArrow />
       </span>
-      <span className="font-serif text-[1.05rem] leading-none tracking-wide">{label}</span>
+      <span className="font-serif text-[1.05rem] leading-none tracking-wide">{label ?? t.back.home}</span>
     </Link>
   );
 }

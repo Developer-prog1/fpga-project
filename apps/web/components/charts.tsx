@@ -1,3 +1,5 @@
+import { dictionary } from "@/lib/i18n/messages";
+import type { Locale } from "@/lib/i18n/locale";
 import { formatMetric, legendAmount } from "@/lib/metrics";
 
 type Pt = { x: number; y: number };
@@ -497,11 +499,11 @@ export function TimeChart({
   );
 }
 
-export function ChartLegend({ series }: { series: ChartSeries[] }) {
+export function ChartLegend({ series, locale = "am" }: { series: ChartSeries[]; locale?: Locale }) {
   return (
     <div className="mt-1 flex flex-wrap gap-x-5 gap-y-2 text-sm">
       {series.map((item) => {
-        const amount = legendAmount(item.kind, item.values, item.digits ?? 1);
+        const amount = legendAmount(item.kind, item.values, item.digits ?? 1, locale);
         return (
           <span key={item.label} className="inline-flex items-center gap-2 text-ink-soft">
             <span className="size-2.5 rounded-full" style={{ background: item.color }} />
@@ -520,7 +522,16 @@ export function ChartLegend({ series }: { series: ChartSeries[] }) {
   );
 }
 
-export function WindRose({ deg, speed }: { deg: number; speed: number }) {
+export function WindRose({
+  deg,
+  speed,
+  locale = "am",
+}: {
+  deg: number;
+  speed: number;
+  locale?: Locale;
+}) {
+  const copy = dictionary(locale);
   const cx = 100;
   const cy = 100;
   const r = 74;
@@ -533,15 +544,16 @@ export function WindRose({ deg, speed }: { deg: number; speed: number }) {
   const nx = -Math.sin(rad);
   const ny = Math.cos(rad);
 
+  const [north, east, south, west] = copy.chartsUi.cardinals;
   const cardinal = [
-    { label: "Հս", x: cx, y: 18 },
-    { label: "Ա", x: 184, y: cy + 4 },
-    { label: "Հր", x: cx, y: 192 },
-    { label: "Ամ", x: 16, y: cy + 4 },
+    { label: north, x: cx, y: 18 },
+    { label: east, x: 184, y: cy + 4 },
+    { label: south, x: cx, y: 192 },
+    { label: west, x: 16, y: cy + 4 },
   ];
 
   return (
-    <svg viewBox="0 0 200 200" className="mx-auto h-[210px] w-[210px]" role="img" aria-label="Քամու ուղղություն">
+    <svg viewBox="0 0 200 200" className="mx-auto h-[210px] w-[210px]" role="img" aria-label={copy.chartsUi.wind}>
       <circle cx={cx} cy={cy} r="88" fill="rgba(255,250,242,0.65)" stroke="rgba(196,163,90,0.35)" />
       <circle cx={cx} cy={cy} r={r} fill="none" stroke="rgba(26,18,14,0.08)" />
       <circle cx={cx} cy={cy} r="48" fill="none" stroke="rgba(26,18,14,0.06)" />
@@ -572,7 +584,7 @@ export function WindRose({ deg, speed }: { deg: number; speed: number }) {
       />
       <circle cx={cx} cy={cy} r="28" fill="#fffaf2" stroke="rgba(196,163,90,0.45)" />
       <text x={cx} y={cy - 2} textAnchor="middle" fill="#1a120e" fontSize="18" fontFamily="var(--font-serif-armenian), serif">
-        {formatMetric(speed, 1)}
+        {formatMetric(speed, 1, locale)}
       </text>
       <text x={cx} y={cy + 16} textAnchor="middle" fill="#5c5148" fontSize="10">
         m/s
@@ -581,7 +593,8 @@ export function WindRose({ deg, speed }: { deg: number; speed: number }) {
   );
 }
 
-export function MoistureGauge({ value }: { value: number }) {
+export function MoistureGauge({ value, locale = "am" }: { value: number; locale?: Locale }) {
+  const copy = dictionary(locale);
   const cx = 100;
   const cy = 92;
   const r = 64;
@@ -605,16 +618,16 @@ export function MoistureGauge({ value }: { value: number }) {
   const ny = cy + Math.sin(needle) * (r - 14);
 
   return (
-    <svg viewBox="0 0 200 128" className="mx-auto h-[132px] w-[210px]" role="img" aria-label="Հողի խոնավություն">
+    <svg viewBox="0 0 200 128" className="mx-auto h-[132px] w-[210px]" role="img" aria-label={copy.chartsUi.soil}>
       <path d={arc(0, 1)} fill="none" stroke="rgba(26,18,14,0.08)" strokeWidth="12" strokeLinecap="round" />
       <path d={arc(0, t)} fill="none" stroke="#2a4538" strokeWidth="12" strokeLinecap="round" />
       <line x1={cx} y1={cy} x2={nx} y2={ny} stroke="#1a120e" strokeWidth="2.4" strokeLinecap="round" />
       <circle cx={cx} cy={cy} r="6" fill="#1a120e" />
       <text x={cx + Math.cos(start) * (r + 16)} y={cy + Math.sin(start) * (r + 16) + 4} textAnchor="middle" fill="#7a6e64" fontSize="10">
-        չոր
+        {copy.chartsUi.dry}
       </text>
       <text x={cx + Math.cos(start + sweep) * (r + 16)} y={cy + Math.sin(start + sweep) * (r + 16) + 4} textAnchor="middle" fill="#7a6e64" fontSize="10">
-        խոնավ
+        {copy.chartsUi.wet}
       </text>
     </svg>
   );
