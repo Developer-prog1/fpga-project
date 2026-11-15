@@ -44,8 +44,8 @@ export default async function HistoryPage({ searchParams }: HistoryPageProps) {
   const rawTo = one(query.to);
   const selected = isDayKey(rawFrom) && isDayKey(rawTo);
 
-  if ((rawFrom || rawTo || query.span) && !selected) redirect("/history");
-  if (selected && rawFrom > rawTo) redirect(`/history?from=${rawTo}&to=${rawFrom}`);
+  if ((rawFrom || rawTo || query.span) && !selected) redirect(localizeHref(locale, "/history"));
+  if (selected && rawFrom > rawTo) redirect(localizeHref(locale, `/history?from=${rawTo}&to=${rawFrom}`));
 
   const history = await api<HistoryResponse>(
     selected
@@ -128,7 +128,9 @@ async function HistoryResults({
             labelFor={(iso) => historyTickLabel(iso, history.grain, days, locale)}
             shadeNight={history.shadeNight}
             compareDays={compareDays}
-            hrefFor={(chartId) => `/history/${chartId}?from=${history.dayFrom}&to=${history.dayTo}`}
+            hrefFor={(chartId) =>
+              localizeHref(locale, `/history/${chartId}?from=${history.dayFrom}&to=${history.dayTo}`)
+            }
           />
         )}
       </section>

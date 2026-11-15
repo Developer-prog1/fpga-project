@@ -13,6 +13,7 @@ import {
   inclusiveDays,
   isDayKey,
 } from "@/lib/history";
+import { localizeHref } from "@/lib/i18n/locale";
 import { getI18n } from "@/lib/i18n/server";
 import type { HistoryResponse } from "@/lib/types";
 
@@ -44,8 +45,8 @@ export default async function HistoryChartPage({ params, searchParams }: History
   const query = await searchParams;
   const rawFrom = one(query.from);
   const rawTo = one(query.to);
-  if (!isDayKey(rawFrom) || !isDayKey(rawTo)) redirect("/history");
-  if (rawFrom > rawTo) redirect(`/history/${chart.id}?from=${rawTo}&to=${rawFrom}`);
+  if (!isDayKey(rawFrom) || !isDayKey(rawTo)) redirect(localizeHref(locale, "/history"));
+  if (rawFrom > rawTo) redirect(localizeHref(locale, `/history/${chart.id}?from=${rawTo}&to=${rawFrom}`));
 
   const history = await api<HistoryResponse>(`/readings/history?from=${rawFrom}&to=${rawTo}`);
   if (!history) {
@@ -58,7 +59,7 @@ export default async function HistoryChartPage({ params, searchParams }: History
 
   const days = inclusiveDays(history.dayFrom, history.dayTo);
   const compareDays = days > 1 && history.grain !== "1d";
-  const backHref = `/history?from=${history.dayFrom}&to=${history.dayTo}`;
+  const backHref = localizeHref(locale, `/history?from=${history.dayFrom}&to=${history.dayTo}`);
 
   return (
     <div className="px-6 py-8 sm:px-8 lg:px-12 lg:py-10">
