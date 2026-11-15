@@ -25,7 +25,8 @@ export type DayReading = {
 
 export type SeriesShape = "flat" | "fell" | "rose" | "fell-then-rose" | "rose-then-fell" | "mixed";
 
-type LevelKey = Extract<MetricKey, keyof NarrativePoint>;
+type SampleKey = Extract<MetricKey, keyof NarrativePoint>;
+type LevelKey = Exclude<SampleKey, "rainfallMm">;
 
 type LevelSpec = {
   kind: "level";
@@ -274,7 +275,7 @@ function extremes(samples: Sample[]): Extremes {
   };
 }
 
-function finiteSamples(rows: readonly NarrativePoint[], key: LevelKey): Sample[] {
+function finiteSamples(rows: readonly NarrativePoint[], key: SampleKey): Sample[] {
   return rows.flatMap((row) => {
     const value = row[key];
     return typeof value === "number" && Number.isFinite(value) ? [{ at: row.recordedAt, value }] : [];
