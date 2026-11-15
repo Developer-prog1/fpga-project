@@ -51,15 +51,11 @@ export function LanguageSwitcher() {
   }
 
   function select(event: React.MouseEvent<HTMLAnchorElement>, next: Locale) {
-    setOpen(false);
-    if (next === locale) {
-      event.preventDefault();
-      return;
-    }
-    const search = window.location.search;
-    if (!search) return;
+    if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey || event.button !== 0) return;
     event.preventDefault();
-    router.push(`${hrefFor(next)}${search}`);
+    setOpen(false);
+    if (next === locale) return;
+    router.push(`${hrefFor(next)}${window.location.search}`);
   }
 
   return (

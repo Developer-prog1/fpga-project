@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import { Noto_Sans, Noto_Sans_Armenian, Noto_Serif, Noto_Serif_Armenian } from "next/font/google";
-import { I18nProvider } from "@/components/i18n-provider";
 import { htmlLang } from "@/lib/i18n/locale";
 import { getI18n } from "@/lib/i18n/server";
 import "./globals.css";
@@ -48,9 +47,7 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
       lang={htmlLang(locale)}
       className={`${sans.variable} ${sansHy.variable} ${serif.variable} ${serifHy.variable} h-full antialiased`}
     >
-      <body className="min-h-full font-sans">
-        <I18nProvider locale={locale}>{children}</I18nProvider>
-      </body>
+      <body className="min-h-full font-sans">{children}</body>
     </html>
   );
 }

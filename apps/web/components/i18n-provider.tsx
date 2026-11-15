@@ -1,13 +1,17 @@
 "use client";
 
-import { createContext, useContext } from "react";
+import { createContext, useContext, useEffect } from "react";
 import { dictionary } from "@/lib/i18n/messages";
 import type { Dictionary } from "@/lib/i18n/dictionary";
-import type { Locale } from "@/lib/i18n/locale";
+import { htmlLang, type Locale } from "@/lib/i18n/locale";
 
 const I18nContext = createContext<{ locale: Locale; t: Dictionary } | null>(null);
 
 export function I18nProvider({ locale, children }: { locale: Locale; children: React.ReactNode }) {
+  useEffect(() => {
+    document.documentElement.lang = htmlLang(locale);
+  }, [locale]);
+
   return <I18nContext.Provider value={{ locale, t: dictionary(locale) }}>{children}</I18nContext.Provider>;
 }
 
