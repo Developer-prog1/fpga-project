@@ -1,3 +1,4 @@
+import { dictionary } from "@/lib/i18n/messages";
 import { formatSigned } from "@/lib/history";
 import { formatMetric } from "@/lib/metrics";
 import type { HistoryResponse, LevelCompare, SumCompare } from "@/lib/types";
@@ -36,7 +37,11 @@ function CompareCard({ card, previousLabel }: { card: Card; previousLabel: strin
         : `${word} ${amount(card.current, card.digits, card.unit)} · ${previousLabel} ${amount(card.previous, card.digits, card.unit)}`;
   const range =
     card.mode === "avg" && card.min != null && card.max != null
-      ? `չափումների միջակայք ${formatMetric(card.min, card.digits)}–${formatMetric(card.max, card.digits)} ${card.unit}`
+      ? dictionary("am").history.range(
+          formatMetric(card.min, card.digits),
+          formatMetric(card.max, card.digits),
+          card.unit,
+        )
       : null;
 
   return (

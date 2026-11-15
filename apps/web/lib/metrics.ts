@@ -117,6 +117,9 @@ export function metrics(locale: Locale = "am"): MetricDef[] {
   }));
 }
 
+export const METRICS = metrics();
+export const GROUPS = dictionary("am").groups;
+
 export function windDegNorm(deg: number) {
   const n = Math.round(((deg % 360) + 360) % 360);
   return n === 360 ? 0 : n;

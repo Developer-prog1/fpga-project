@@ -214,7 +214,7 @@ export const ru: Dictionary = {
     noPrevious: (word, current, previous) => `${word} ${current} · нет данных за ${previous}`,
     compared: (word, current, previous, previousValue) =>
       `${word} ${current} · ${previous} ${previousValue}`,
-    range: (min, max, unit) => `диапазон ${min}–${max} ${unit}`,
+    range: (min, max, unit) => `диапазон измерений ${min}–${max} ${unit}`,
     cards: { air: "Температура воздуха", soil: "Влажность почвы", rain: "Осадки", wind: "Ветер" },
   },
   calendar: {

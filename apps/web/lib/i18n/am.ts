@@ -206,7 +206,7 @@ export const am: Dictionary = {
     noPrevious: (word, current, previous) => `${word} ${current} · ${previous} չկա`,
     compared: (word, current, previous, previousValue) =>
       `${word} ${current} · ${previous} ${previousValue}`,
-    range: (min, max, unit) => `միջակայք ${min}–${max} ${unit}`,
+    range: (min, max, unit) => `չափումների միջակայք ${min}–${max} ${unit}`,
     cards: { air: "Օդի ջերմաստիճան", soil: "Հողի խոնավություն", rain: "Տեղումներ", wind: "Քամի" },
   },
   calendar: {

@@ -206,7 +206,7 @@ export const en: Dictionary = {
     noPrevious: (word, current, previous) => `${word} ${current} · ${previous} unavailable`,
     compared: (word, current, previous, previousValue) =>
       `${word} ${current} · ${previous} ${previousValue}`,
-    range: (min, max, unit) => `range ${min}–${max} ${unit}`,
+    range: (min, max, unit) => `sample range ${min}–${max} ${unit}`,
     cards: { air: "Air temperature", soil: "Soil moisture", rain: "Rainfall", wind: "Wind" },
   },
   calendar: {
