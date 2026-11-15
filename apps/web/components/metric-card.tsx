@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Sparkline } from "@/components/charts";
 import { MetricIcon } from "@/components/weather-icons";
+import type { ChartWindow } from "@/lib/day-window";
 import type { Locale } from "@/lib/i18n/locale";
 import { getI18n } from "@/lib/i18n/server";
 import { formatMetric } from "@/lib/metrics";
@@ -56,6 +57,8 @@ type MetricCardProps = {
   hint?: string;
   watch: string | null;
   spark: number[];
+  sparkTimes?: string[];
+  timeWindow?: ChartWindow;
   min: number;
   max: number;
   color: string;
@@ -100,6 +103,8 @@ export async function MetricCard({
   hint,
   watch,
   spark,
+  sparkTimes,
+  timeWindow,
   min,
   max,
   color,
@@ -123,7 +128,7 @@ export async function MetricCard({
       {hint ? <p className="mt-3 text-sm text-ink-soft">{hint}</p> : null}
 
       <div className="mt-4 rounded-2xl px-2 pt-2" style={{ background: `${color}10` }}>
-        <Sparkline values={spark} color={color} />
+        <Sparkline values={spark} times={sparkTimes} timeWindow={timeWindow} color={color} />
       </div>
       <RangeMark
         min={min}
